@@ -5,6 +5,7 @@ use Algorithm::Cluster qw/kcluster/;
 
 my $file = "../../data/cyano.txt";
 my $i = 0;
+my $j = 0;
 my (@orfname,@orfdata,@weight,@mask);
 
 open(DATA,"<$file") or die "Can't open file $file: $!";
@@ -56,7 +57,7 @@ my %params = (
 #------------------
 # Here is where we invoke the library function!
 #
-my ($clusters, $centroids, $error, $found) = kcluster(%params);
+my ($clusters, $error, $found) = kcluster(%params);
 #
 #------------------
 
@@ -68,7 +69,7 @@ my ($clusters, $centroids, $error, $found) = kcluster(%params);
 my %orfname_by_cluster;
 $i=0;
 foreach(@{$clusters}) {
-	push @{$orfname_by_cluster{$_}}, $orfname_by_rowid{$i++};
+        push @{$orfname_by_cluster{$_}}, $orfname_by_rowid{$i++};
 }
 
 
@@ -76,18 +77,14 @@ foreach(@{$clusters}) {
 # Print out a list of the ORFs, grouped by cluster ID,
 # as returned by the kcluster() function.
 #
-$i=0;
-foreach(@{$centroids}) {
+for ($i = 0; $i < $params{"nclusters"}; $i++) {
+        print "------------------\n";
+        printf("Cluster %d:  %d ORFs\n\n",
+                $i, scalar(@{$orfname_by_cluster{$i} })
+        );
 
-	print "------------------\n";
-	printf("Cluster %d:  %d ORFs,  centroids: ( %s )\n\n", 
-		$i, scalar(@{$orfname_by_cluster{$i} }),
-		join ', ', map { sprintf "%.3f",$_ } @{$_}
-	);
-
-	print "\t$_\n", foreach( sort { $a cmp $b } @{$orfname_by_cluster{$i} } );
-	print "\n";
-	++$i;
+        print "\t$_\n", foreach( sort { $a cmp $b } @{$orfname_by_cluster{$i} } );
+        print "\n";
 }
 
 
@@ -97,3 +94,27 @@ foreach(@{$centroids}) {
 print "------------------\n";
 printf("Within-cluster sum of distances:  %f\n\n", $error); 
 
+
+#------------------
+# Try this again with a specified initial clustering solution
+#
+
+my @initialid = (0,1,2,3,4,5) x 15;
+# choice for the initial clustering; the data file contains 90 genes.
+
+%params = (
+	nclusters =>         6,
+	transpose =>         0,
+	method    =>       'a',
+	dist      =>       'e',
+	data      =>    \@orfdata,
+	mask      =>       \@mask,
+	weight    =>     \@weight,
+	initialid =>  \@initialid,
+);
+
+printf("Executing k-means clustering with a specified initial clustering\n");
+
+($clusters, $error, $found) = kcluster(%params);
+
+printf("Within-cluster sum of distances:  %f\n\n", $error); 

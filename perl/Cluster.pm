@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.27';
+$VERSION     = '1.28';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -41,9 +41,11 @@ $DEBUG       = 1;
 	mean 
 	median 
 	kcluster 
+	kmedoids 
 	somcluster 
 	treecluster
 	clusterdistance 
+	distancematrix 
 );
 
 use warnings::register;
@@ -232,6 +234,132 @@ sub check_matrix_dimensions  {
 }
 
 
+sub check_distance_matrix  {
+
+	my ($param, $default) = @_;
+	my $i;
+	my $row;
+        my $column;
+
+	#----------------------------------
+	# Check the data matrix
+	#
+	unless (ref($param->{distances}) eq 'ARRAY') {
+		module_warn( "Wanted array reference, but got a reference to ",
+				ref($param->{distances}), ".");
+		return;
+	}
+
+	$param->{nobjects} = scalar @{ $param->{distances} };
+
+	unless ($param->{nobjects} > 0) {
+		module_warn("Distance matrix has zero rows.");
+		return;
+	}
+
+	$i = 0;
+	$row =  $param->{distances}->[0];
+	foreach $row (@{ $param->{distances}}) {
+		unless (defined $row) {
+			module_warn( "Row $i is undefined");
+			return;
+		}
+		unless (ref($row) eq 'ARRAY') {
+			module_warn("Row $i is not an array");
+			return;
+		}
+		unless (@{$row} >= $i) {
+			module_warn("Row $i has insufficient columns");
+			return;
+		}
+		foreach $column (@{$row}) {
+			unless (defined($column)) {
+				module_warn("Row $i contains undefined columns");
+				return;
+			}
+		}
+	}
+	return 1;
+}
+
+sub check_initialid  {
+
+	my ($param, $default, $nobjects) = @_;
+	my $i;
+	my @counter = {};
+
+	#----------------------------------
+	# Check the initial clustering solution, if specified
+	#
+	if(ref $param->{initialid} ne 'ARRAY') {
+		module_warn("Optional parameter 'initialid' should be an array");
+		return;
+	}
+
+	if (@{ $param->{initialid}} == 0) {
+		# no initial clustering solution specified
+		if ($param->{nclusters}==-1) {
+			$param->{nclusters} = 2; # default value
+		}
+		if ($param->{nclusters} > $nobjects) {
+			module_warn("More clusters requested than elements available");
+			return;
+		}
+		unless($param->{npass} =~ /^\d+$/ and $param->{npass} > 0) {
+			module_warn("Parameter 'npass' must be a positive integer (got '$param->{npass}')");
+			return;
+		}
+		return 1;
+	}
+
+	if (@{ $param->{initialid}} != $nobjects) {
+		module_warn("Optional parameter 'initialid' should contain $nobjects elements");
+		return;
+	}
+
+	foreach $i (@{ $param->{initialid}}) {
+		unless($i =~ /^\d+$/ and $i >= 0) {
+			module_warn("Optional parameter 'initialid' should only contain non-negative integers");
+			return;
+		}
+	}
+
+	if ($param->{nclusters} == -1) {
+		# number of clusters was not specified. Infer it from initialid
+		foreach $i (@{ $param->{initialid}}) {
+			if ($i > $param->{nclusters}) {
+				$param->{nclusters} = $i;
+			}
+		}
+		$param->{nclusters}++;
+	} else {
+		# check if initialid is consistent with number of clusters
+		foreach $i (@{ $param->{initialid}}) {
+			if ($i >= $param->{nclusters}) {
+				module_warn("Optional parameter 'initialid' inconsistent with nclusters");
+				return;
+			}
+		}
+	}
+
+	# Check that none of the clusters are empty
+	for ($i = 0; $i < $param->{nclusters}; $i++) {
+		push(@counter, 0);
+	}
+	foreach $i (@{ $param->{initialid}}) {
+		$counter[$i]++;
+	}
+	for ($i = 0; $i < $param->{nclusters}; $i++) {
+		if ($counter[$i]==0) {
+			module_warn("Optional parameter 'initialid' contains empty clusters");
+			return;
+		}
+	}
+
+	# No errors detected
+	$param->{npass} = 0;
+	return 1;
+}
 
 #-------------------------------------------------------------
 # Wrapper for the kcluster() function
@@ -243,15 +371,22 @@ sub kcluster  {
 	#
 	my %default = (
 
-		nclusters =>     3,
+		nclusters =>    -1,
 		data      =>  [[]],
 		mask      =>    '',
 		weight    =>    '',
 		transpose =>     0,
-		npass     =>    10,
+		npass     =>     1,
 		method    =>   'a',
 		dist      =>   'e',
+		initialid =>    [],
 	);
+
+
+	#----------------------------------
+	# Local variable
+	#
+	my $nobjects = 0;
 
 	#----------------------------------
 	# Accept parameters from caller
@@ -269,27 +404,34 @@ sub kcluster  {
 	#
 	return unless check_matrix_dimensions(\%param, \%default);
 
-
 	#----------------------------------
-	# Check the other parameters
+	# Check the transpose parameter
 	#
-	unless($param{transpose} =~ /^[01]$/) {
+	if ($param{transpose} == 0) {
+		$nobjects = $param{nrows};
+	} elsif ($param{transpose} == 1) {
+		$nobjects = $param{ncols};
+	} else {
 		module_warn("Parameter 'transpose' must be either 0 or 1 (got '$param{transpose}')");
 		return;
 	}
 
-	unless($param{npass}     =~ /^\d+$/ and $param{npass} > 0) {
-		module_warn("Parameter 'npass' must be a positive integer (got '$param{npass}')");
-		return;
-	}
+	#----------------------------------
+	# Check the initial clustering, if specified, and npass
+	#
+	return unless check_initialid(\%param, \%default, $nobjects);
 
+
+	#----------------------------------
+	# Check the other parameters
+	#
 	unless($param{method}    =~ /^[am]$/) {
 		module_warn("Parameter 'method' must be either 'a' or 'm' (got '$param{method}')");
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskehb]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskeb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskeb] (got '$param{dist}')");
 		return;
 	}
 
@@ -298,13 +440,59 @@ sub kcluster  {
 	# Invoke the library function
 	#
 	return _kcluster( @param{
-		qw/nclusters nrows ncols data mask weight transpose npass method dist/
+		qw/nclusters nrows ncols data mask weight transpose npass method dist initialid/
 	} );
 }
 
 #-------------------------------------------------------------
-# treecluster(): Wrapper for the library functions
-# pslcluster(), pmlcluster(), palcluster() and pclcluster().
+# Wrapper for the kmedoids() function
+#
+
+sub kmedoids  {
+
+	#----------------------------------
+	# Define default parameters
+	#
+	my %default = (
+
+		nclusters =>     2,
+		distances =>  [[]],
+		npass     =>     1,
+		initialid =>    [],
+	);
+
+	#----------------------------------
+	# Accept parameters from caller
+	#
+	my %param;
+	if(ref($_[0]) eq 'HASH') {
+		%param = (%default, %{$_[0]});
+	} else {
+		%param = (%default, @_);
+	}
+
+
+	#----------------------------------
+	# Check the distance matrix
+	#
+	return unless check_distance_matrix(\%param, \%default);
+
+
+	#----------------------------------
+	# Check the initial clustering, if specified, and npass
+	#
+	return unless check_initialid(\%param, \%default, $param{nobjects});
+
+	#----------------------------------
+	# Invoke the library function
+	#
+	return _kmedoids( @param{
+		qw/nclusters nobjects distances npass initialid/
+	} );
+}
+
+#-------------------------------------------------------------
+# treecluster(): Wrapper for the treecluster function
 #
 sub treecluster  {
 
@@ -316,7 +504,6 @@ sub treecluster  {
 		data       =>  [[]],
 		mask       =>    '',
 		weight     =>    '',
-		applyscale =>     0,
 		transpose  =>     0,
 		dist       =>   'e',
 		method     =>   's',
@@ -342,11 +529,6 @@ sub treecluster  {
 	#----------------------------------
 	# Check the other parameters
 	#
-	unless($param{applyscale} =~ /^[01]$/) {
-		module_warn("Parameter 'applyscale' must be either 0 or 1 (got '$param{applyscale}')");
-		return;
-	}
-
 	unless($param{transpose} =~ /^[01]$/) {
 		module_warn("Parameter 'transpose' must be either 0 or 1 (got '$param{transpose}')");
 		return;
@@ -357,8 +539,8 @@ sub treecluster  {
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskehb]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskeb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskeb] (got '$param{dist}')");
 		return;
 	}
 
@@ -367,7 +549,7 @@ sub treecluster  {
 	# Invoke the library function
 	#
 	return _treecluster( @param{
-		qw/nrows ncols data mask weight applyscale transpose dist method/
+		qw/nrows ncols data mask weight transpose dist method/
 	} );
 }
 
@@ -406,19 +588,25 @@ sub clusterdistance  {
 	#----------------------------------
 	# Check the cluster1 and cluster2 arrays
 	#
-	if(ref $param{cluster1} ne 'ARRAY') {
+	if($param{cluster1} =~ /^\d+$/) {
+		$param{cluster1} = [int($param{cluster1})];
+	} elsif(ref $param{cluster1} ne 'ARRAY') {
 		module_warn("Parameter 'cluster1' does not point to an array. Cannot compute distance.");
 		return;
 	} elsif(@{ $param{cluster1}} <= 0) {
 		module_warn("Parameter 'cluster1' points to an empty array. Cannot compute distance.");
 		return;
-	} elsif (ref $param{cluster2} ne 'ARRAY') {
+	}
+	if($param{cluster2} =~ /^\d+$/) {
+		$param{cluster2} = [int($param{cluster2})];
+	} elsif(ref $param{cluster2} ne 'ARRAY') {
 		module_warn("Parameter 'cluster2' does not point to an array. Cannot compute distance.");
 		return;
 	} elsif(@{ $param{cluster2}} <= 0) {
 		module_warn("Parameter 'cluster2' points to an empty array. Cannot compute distance.");
 		return;
-	} 
+	}
+
 	$param{cluster1_len} = @{ $param{cluster1}};
 	$param{cluster2_len} = @{ $param{cluster2}};
 
@@ -441,8 +629,8 @@ sub clusterdistance  {
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskehb]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskeb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskeb] (got '$param{dist}')");
 		return;
 	}
 
@@ -453,6 +641,63 @@ sub clusterdistance  {
 	return _clusterdistance( @param{
 		qw/nrows ncols data mask weight cluster1_len cluster2_len 
 		cluster1 cluster2 dist method transpose/
+	} );
+}
+
+
+#-------------------------------------------------------------
+# Wrapper for the distancematrix() function
+#
+sub distancematrix  {
+
+	#----------------------------------
+	# Define default parameters
+	#
+	my %default = (
+
+		data      =>  [[]],
+		mask      =>    '',
+		weight    =>    '',
+		dist      =>   'e',
+		transpose =>     0,
+	);
+
+	#----------------------------------
+	# Accept parameters from caller
+	#
+	my %param;
+	if(ref($_[0]) eq 'HASH') {
+		%param = (%default, %{$_[0]});
+	} else {
+		%param = (%default, @_);
+	}
+
+	#----------------------------------
+	# Check the data, matrix and weight parameters
+	#
+	return unless check_matrix_dimensions(\%param, \%default);
+
+	#----------------------------------
+	# Check the transpose parameter
+	#
+	unless($param{transpose} =~ /^[01]$/) {
+		module_warn("Parameter 'transpose' must be either 0 or 1 (got '$param{transpose}')");
+		return;
+	}
+
+	#----------------------------------
+	# Check the other parameters
+	#
+	unless($param{dist}      =~ /^[cauxskeb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskeb] (got '$param{dist}')");
+		return;
+	}
+
+	#----------------------------------
+	# Invoke the library function
+	#
+	return _distancematrix( @param{
+		qw/nrows ncols data mask weight transpose dist/
 	} );
 }
 
@@ -523,8 +768,8 @@ sub somcluster  {
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskehb]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskeb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskeb] (got '$param{dist}')");
 		return;
 	}
 

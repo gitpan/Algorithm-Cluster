@@ -408,6 +408,21 @@ free_matrix_dbl(double ** matrix, int nrows) {
 
 
 /* -------------------------------------------------
+ *
+ */
+static void
+free_ragged_matrix_dbl(double ** matrix, int nrows) {
+
+	int i;
+	for(i = 1; i < nrows; ++i ) {
+		free(matrix[i]);
+	}
+
+	free(matrix);
+}
+
+
+/* -------------------------------------------------
  * For debugging
  */
 static void
@@ -495,49 +510,36 @@ format_matrix_dbl(pTHX_ double ** matrix, int rows, int columns) {
 
 /* -------------------------------------------------
  * Convert a Perl array into an array of doubles
- * On errors this function returns a value greater than zero.
- * If there are errors, then the C array will be SHORTER than
- * the original Perl array.
+ * On error, this function returns NULL.
  */
-static int
-malloc_row_perl2c_dbl (pTHX_ SV * input, double ** array_ptr, int * array_length_ptr) {
+static double*
+malloc_row_perl2c_dbl (pTHX_ SV * input, int* np) {
 
-	AV * array;
-	int i,ii;
-	int array_length,original_array_length;
-	double * data;
-	int error_count = 0;
+	int i;
+	AV* array    = (AV *) SvRV(input);
+	const int n  = (int) av_len(array) + 1;
+	double* data = malloc(n * sizeof(double)); 
 
-	array                 = (AV *) SvRV(input);
-	array_length          = (int) av_len(array) + 1;
-	original_array_length = array_length;
-	data                  = malloc(original_array_length * sizeof(double)); 
 
-	/* Loop once for each item in the Perl array, and convert it to a C double. 
-	 * Variable i  increments with each item in the Perl array. 
-	 * Variable ii increments with each item in the C array. 
-	 * Some Perl items may be skipped, so variable ii will sometimes not increment.
+	/* Loop once for each item in the Perl array, and convert
+         * it to a C double. 
 	 */
-	for (i=0,ii=0; i < original_array_length; ++i,++ii) {
+	for (i=0; i < n; i++) {
 		double num;
 		SV * mysv = *(av_fetch(array, (I32) i, (I32) 0));
 		if(extract_double_from_scalar(aTHX_ mysv,&num) > 0) {	
-			data[ii] = num;
+			data[i] = num;
 		} else {
-			/* Skip any items which are not numeric */
-    		if (warnings_enabled(aTHX))
+			/* Error reading data */
+    			if (warnings_enabled(aTHX))
 				Perl_warn(aTHX_ 
-					"Warning when parsing array: item %d is not a number, skipping\n", i);      
-			data[ii] = 0.0;
-			--ii;
-			--array_length;  
-			error_count++;
+			"Error parsing array: item %d is not a number\n", i);      
+			free(data);
+			return NULL;
 		}
 	}
-	*array_ptr        = data;
-	*array_length_ptr = array_length;
-
-	return(error_count);
+	if(np) *np = n;
+	return data;
 }
 
 /* -------------------------------------------------
@@ -671,6 +673,22 @@ matrix_c2perl_dbl(pTHX_ double ** matrix, int nrows, int ncols) {
 }
 
 /* -------------------------------------------------
+ *
+ */
+static SV*
+ragged_matrix_c2perl_dbl(pTHX_ double ** matrix, int nobjects) {
+
+	int i;
+	AV * matrix_av = newAV();
+	SV * row_ref;
+	for(i=0; i<nobjects; ++i) {
+		row_ref = row_c2perl_dbl(aTHX_ matrix[i], i);
+		av_push(matrix_av, row_ref);
+	}
+	return ( newRV_noinc( (SV*) matrix_av ) );
+}
+
+/* -------------------------------------------------
  * Convert the 'data' and 'mask' matrices and the 'weight' array
  * from C to Perl.  Also check for errors, and ignore the
  * mask or the weight array if there are any errors. 
@@ -678,7 +696,7 @@ matrix_c2perl_dbl(pTHX_ double ** matrix, int nrows, int ncols) {
  */
 static int
 malloc_matrices(pTHX_
-	SV *  weight_ref, double  ** weight, int * nweights_ptr, 
+	SV *  weight_ref, double  ** weight, int nweights, 
 	SV *  data_ref,   double *** matrix,
 	SV *  mask_ref,   int    *** mask,
 	int   nrows,      int        ncols
@@ -686,7 +704,6 @@ malloc_matrices(pTHX_
 
 	int error_count;
 	int dummy;
-	const int nweights = *nweights_ptr; /* The correct number of weights */
 
 	if(SvTYPE(SvRV(mask_ref)) == SVt_PVAV) { 
 		error_count = malloc_matrix_perl2c_int(aTHX_ mask_ref, mask, &dummy, &dummy);
@@ -705,20 +722,51 @@ malloc_matrices(pTHX_
 		Perl_warn(aTHX_ "%d errors when parsing input matrix.\n", error_count);      
 
 	if(SvTYPE(SvRV(weight_ref)) == SVt_PVAV) { 
-		error_count = malloc_row_perl2c_dbl(aTHX_ weight_ref, weight, nweights_ptr);
-		if(error_count > 0 || *nweights_ptr != nweights) {
-			Perl_warn(aTHX_ "Weight array has %d items, should have %d. "
-				"%d errors detected.\n", *nweights_ptr, nweights, error_count);      
-			free(*weight);
-			*weight = malloc_row_dbl(aTHX_ nweights,1.0);
-			*nweights_ptr = nweights;
+		*weight = malloc_row_perl2c_dbl(aTHX_ weight_ref, NULL);
+		if(!(*weight)) {
+			Perl_warn(aTHX_ "Error reading weight array.\n");
+			return 0;
 		}
 	} else {
-			*weight = malloc_row_dbl(aTHX_ nweights,1.0);
-			*nweights_ptr = nweights;
+		*weight = malloc_row_dbl(aTHX_ nweights,1.0);
 	}
 
-	return 0;
+	return 1;
+}
+
+static int
+malloc_distancematrix(pTHX_ SV* matrix_ref, double*** matrix_ptr, int nobjects)
+{
+	int i,j;
+
+	int error_count = 0;
+	AV* matrix_av  = (AV *) SvRV(matrix_ref);
+	double** matrix   = malloc(nobjects * sizeof(double *) );
+
+	matrix[0] = NULL;
+	for (i=1; i < nobjects; i++) { 
+		SV* row_ref = *(av_fetch(matrix_av, (I32) i, 0)); 
+		AV* row_av  = (AV *) SvRV(row_ref);
+		matrix[i] = malloc(i * sizeof(double));
+		/* Loop once for each cell in the row. */
+		for (j=0; j < i; j++) { 
+			double num;
+			SV* cell = *(av_fetch(row_av, (I32) j, 0)); 
+			if(extract_double_from_scalar(aTHX_ cell,&num) > 0) {	
+				matrix[i][j] = num;
+			} else {
+				if(warnings_enabled(aTHX))
+					Perl_warn(aTHX_ 
+						"Row %3d col %3d: Value is not a number.  Inserting zero into cell.\n", i, j);
+				matrix[i][j] = 0.0;
+				error_count++;
+			}
+		}
+	}
+
+	/* Return pointer and dimensions to the caller */
+	*matrix_ptr  = matrix;
+	return(error_count);
 }
 
 /******************************************************************************/
@@ -790,16 +838,20 @@ _mean(input)
 
 	PREINIT:
 	int array_length;
-	double * data;  /* one-dimensinal array of doubles */
+	double * data;  /* one-dimensional array of doubles */
 
 	CODE:
 	if(SvTYPE(SvRV(input)) != SVt_PVAV) { 
 		XSRETURN_UNDEF;
 	}
 
-	malloc_row_perl2c_dbl (aTHX_ input, &data, &array_length);
-
-	RETVAL = newSVnv( mean(array_length, data) );
+	data = malloc_row_perl2c_dbl (aTHX_ input, &array_length);
+	if (data) {
+		RETVAL = newSVnv( mean(array_length, data) );
+		free(data);
+	} else {
+		RETVAL = newSVnv( 0.0 );
+	}
 
 	OUTPUT:
 	RETVAL
@@ -811,31 +863,32 @@ _median(input)
 
 	PREINIT:
 	int array_length;
-	double * data;  /* one-dimensinal array of doubles */
+	double * data;  /* one-dimensional array of doubles */
 
 	CODE:
 	if(SvTYPE(SvRV(input)) != SVt_PVAV) { 
 		XSRETURN_UNDEF;
 	}
 
-	malloc_row_perl2c_dbl (aTHX_ input, &data, &array_length);
-
-	RETVAL = newSVnv( median(array_length, data) );
-
-	free(data);
+	data = malloc_row_perl2c_dbl (aTHX_ input, &array_length);
+	if(data) {
+		RETVAL = newSVnv( median(array_length, data) );
+		free(data);
+	} else {
+		RETVAL = newSVnv( 0.0 );
+	}
 
 	OUTPUT:
 	RETVAL
 
 
 void
-_treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,applyscale,transpose,dist,method)
+_treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist,method)
     int      nrows;
     int      ncols;
     SV *     data_ref;
     SV *     mask_ref;
     SV *     weight_ref;
-    int      applyscale;
     int      transpose;
     char *   dist;
     char *   method;
@@ -845,11 +898,13 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,applyscale,transpose,dist,
     SV   *    linkdist_ref;
     int       (*result)[2];
     double   * linkdist;
-    int       nweights;
 
     double  * weight;
     double ** matrix;
     int    ** mask;
+    const int ndata = transpose ? nrows : ncols;
+    const int nelements = transpose ? ncols : nrows;
+    int       success;
 
     PPCODE:
     /* ------------------------
@@ -862,24 +917,16 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,applyscale,transpose,dist,
      * Don't bother to cast the pointer for 'result', because we can't 
      * cast it to a pointer-to-array anyway. 
      */
-    if (transpose==0) {
-	nweights = ncols;
-	result   = malloc(2 * (nrows-1) * sizeof(int) );
-	linkdist = malloc(    (nrows-1) * sizeof(double) );
-    } else {
-	nweights = nrows;
-	result   = malloc(2 * (ncols-1) * sizeof(int) );
-	linkdist = malloc(    (ncols-1) * sizeof(double) );
-    }
+    result   = malloc(2 * (nelements-1) * sizeof(int) );
+    linkdist = malloc(    (nelements-1) * sizeof(double) );
 
     /* ------------------------
      * Convert data and mask matrices and the weight array
      * from C to Perl.  Also check for errors, and ignore the
      * mask or the weight array if there are any errors. 
-     * Set nweights to the correct number of weights.
      */
     malloc_matrices( aTHX_
-	weight_ref, &weight, &nweights, 
+	weight_ref, &weight, ndata, 
 	data_ref,   &matrix,
 	mask_ref,   &mask,  
 	nrows,      ncols
@@ -888,13 +935,13 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,applyscale,transpose,dist,
     /* ------------------------
      * Run the library function
      */
-    treecluster( nrows, ncols, matrix, mask, weight, applyscale, 
-		transpose, dist[0], method[0], result, linkdist, 0);
+    success = treecluster( nrows, ncols, matrix, mask, weight, transpose,
+                           dist[0], method[0], result, linkdist, 0);
 
     /* ------------------------
      * Check result to make sure we didn't run into memory problems
      */
-    if(result[0][0]==0 && result[0][1]==0) {
+    if(!success) {
         /* treecluster failed due to insufficient memory */
 	if(warnings_enabled(aTHX))
             Perl_warn(aTHX_ "treecluster failed due to insufficient memory.\n");
@@ -933,7 +980,7 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,applyscale,transpose,dist,
 
 
 void
-_kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,method,dist)
+_kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,method,dist,initialid_ref)
 	int      nclusters;
 	int      nrows;
 	int      ncols;
@@ -944,19 +991,21 @@ _kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,met
 	int      npass;
 	char *   method;
 	char *   dist;
+	SV *     initialid_ref;
 
 	PREINIT:
-	SV  *    centroid_ref;
 	SV  *    clusterid_ref;
 	int *    clusterid;
-	int      nweights;
+	int *    initialid;
+	int      nobjects;
+	int      ndata;
 	double   error;
 	int      ifound;
 
 	double  * weight;
 	double ** matrix;
 	int    ** mask;
-	double ** centroid;
+
 
 	PPCODE:
 	/* ------------------------
@@ -968,71 +1017,152 @@ _kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,met
 	 * Malloc space for the return values from the library function
 	 */
         if (transpose==0) {
-		nweights = ncols;
-		clusterid = malloc(nrows * sizeof(int) );
-		centroid  = malloc_matrix_dbl(aTHX_ nclusters,ncols,0.0);
+		nobjects = nrows;
+		ndata = ncols;
 	} else {
-		nweights = nrows;
-		clusterid = malloc(ncols * sizeof(int) );
-		centroid  = malloc_matrix_dbl(aTHX_ nrows,nclusters,0.0);
+		nobjects = ncols;
+		ndata = nrows;
 	}
+        clusterid = malloc(nobjects * sizeof(int) );
 
 	/* ------------------------
 	 * Convert data and mask matrices and the weight array
 	 * from C to Perl.  Also check for errors, and ignore the
 	 * mask or the weight array if there are any errors. 
-	 * Set nweights to the correct number of weights.
 	 */
 	malloc_matrices( aTHX_
-		weight_ref, &weight, &nweights, 
+		weight_ref, &weight, ndata, 
 		data_ref,   &matrix,
 		mask_ref,   &mask,  
 		nrows,      ncols
 	);
 
 	/* ------------------------
+	 * Copy initialid to clusterid, if needed
+	 */
+
+	if (npass==0) {
+		int       i;
+		int       dummy;
+		malloc_row_perl2c_int(aTHX_ initialid_ref, &initialid, &dummy);
+		for (i = 0; i < nobjects; i++) clusterid[i] = initialid[i];
+	}
+
+	/* ------------------------
 	 * Run the library function
 	 */
 	kcluster( 
 		nclusters, nrows, ncols, 
-		matrix, mask, weight,
-		transpose, npass, method[0], dist[0], clusterid, 
-		centroid, &error, &ifound
+		matrix, mask, weight, transpose,
+		npass, method[0], dist[0], clusterid,  &error, &ifound
+		
 	);
 
 	/* ------------------------
 	 * Convert generated C matrices to Perl matrices
 	 */
-        if (transpose==0) {
-		clusterid_ref =    row_c2perl_int(aTHX_ clusterid, nrows           );
-		centroid_ref  = matrix_c2perl_dbl(aTHX_ centroid,  nclusters, ncols);
-	} else {
-		clusterid_ref =    row_c2perl_int(aTHX_ clusterid, ncols           );
-		centroid_ref  = matrix_c2perl_dbl(aTHX_ centroid,  nrows, nclusters);
-	}
+	clusterid_ref =    row_c2perl_int(aTHX_ clusterid, nobjects);
 
 	/* ------------------------
 	 * Push the new Perl matrices onto the return stack
 	 */
 	XPUSHs(sv_2mortal( clusterid_ref   ));
-	XPUSHs(sv_2mortal( centroid_ref    ));
 	XPUSHs(sv_2mortal( newSVnv(error) ));
 	XPUSHs(sv_2mortal( newSViv(ifound) ));
 
 	/* ------------------------
 	 * Free what we've malloc'ed 
 	 */
-        if (transpose==0) {
-		free_matrix_dbl(centroid, nclusters);
-	} else {
-		free_matrix_dbl(centroid, nrows);
-	}
 	free(clusterid);
 	free_matrix_int(mask,     nrows);
 	free_matrix_dbl(matrix,   nrows);
 	free(weight);
+	if (npass==0) free(initialid);
 
 	/* Finished _kcluster() */
+
+
+
+void
+_kmedoids(nclusters,nobjects,distancematrix_ref,npass,initialid_ref)
+	int      nclusters;
+	int      nobjects;
+	SV *     distancematrix_ref;
+	int      npass;
+	SV *     initialid_ref;
+
+
+	PREINIT:
+	double** distancematrix;
+	int *    initialid;
+	SV  *    clusterid_ref;
+	int *    clusterid;
+	double   error;
+	int      ifound;
+
+
+
+	PPCODE:
+	/* ------------------------
+	 * Don't check the parameters, because we rely on the Perl
+	 * caller to check most parameters.
+	 */
+
+	/* ------------------------
+	 * Malloc space for the return values from the library function
+	 */
+	clusterid = malloc(nobjects * sizeof(int) );
+
+	/* ------------------------
+	 * Convert data and mask matrices and the weight array
+	 * from C to Perl.  Also check for errors, and ignore the
+	 * mask or the weight array if there are any errors. 
+	 */
+	malloc_distancematrix( aTHX_ distancematrix_ref,
+				&distancematrix,
+				nobjects
+	);
+
+	/* ------------------------
+	 * Copy initialid to clusterid, if needed
+	 */
+
+	if (npass==0) {
+		int       i;
+		int       dummy;
+		malloc_row_perl2c_int(aTHX_ initialid_ref, &initialid, &dummy);
+		for (i = 0; i < nobjects; i++) clusterid[i] = initialid[i];
+	}
+
+	/* ------------------------
+	 * Run the library function
+	 */
+	kmedoids( 
+		nclusters, nobjects, 
+		distancematrix, npass, clusterid, 
+		&error, &ifound
+	);
+
+	/* ------------------------
+	 * Convert generated C matrices to Perl matrices
+	 */
+	clusterid_ref =    row_c2perl_int(aTHX_ clusterid, nobjects);
+
+	/* ------------------------
+	 * Push the new Perl matrices onto the return stack
+	 */
+	XPUSHs(sv_2mortal( clusterid_ref   ));
+	XPUSHs(sv_2mortal( newSVnv(error) ));
+	XPUSHs(sv_2mortal( newSViv(ifound) ));
+
+	/* ------------------------
+	 * Free what we've malloc'ed 
+	 */
+	free(clusterid);
+	free_ragged_matrix_dbl(distancematrix, nobjects);
+	if (npass==0) free(initialid);
+
+	/* Finished _kmedoids() */
 
 
 
@@ -1087,7 +1217,7 @@ _clusterdistance(nrows,ncols,data_ref,mask_ref,weight_ref,cluster1_len,cluster2_
 	 */
 	nweights = (transpose==0) ? ncols : nrows;
 	malloc_matrices( aTHX_
-		weight_ref, &weight, &nweights, 
+		weight_ref, &weight, nweights, 
 		data_ref,   &matrix,
 		mask_ref,   &mask,  
 		nrows,      ncols
@@ -1120,6 +1250,89 @@ _clusterdistance(nrows,ncols,data_ref,mask_ref,weight_ref,cluster1_len,cluster2_
 	OUTPUT:
 	RETVAL
 
+
+
+void
+_distancematrix(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist)
+	int      nrows;
+	int      ncols;
+	SV *     data_ref;
+	SV *     mask_ref;
+	SV *     weight_ref;
+	int      transpose;
+	char *   dist;
+
+	PREINIT:
+	SV  *    matrix_ref;
+	int      nobjects;
+	int      ndata;
+
+	double ** data;
+	int    ** mask;
+	double  * weight;
+	double ** matrix;
+
+
+	PPCODE:
+	/* ------------------------
+	 * Don't check the parameters, because we rely on the Perl
+	 * caller to check most parameters.
+	 */
+
+	/* ------------------------
+	 * Malloc space for the return values from the library function
+	 */
+        if (transpose==0) {
+		nobjects = nrows;
+		ndata = ncols;
+	} else {
+		nobjects = ncols;
+		ndata = nrows;
+	}
+
+	/* ------------------------
+	 * Convert data and mask matrices and the weight array
+	 * from C to Perl.  Also check for errors, and ignore the
+	 * mask or the weight array if there are any errors. 
+	 */
+	malloc_matrices( aTHX_
+		weight_ref, &weight, ndata, 
+		data_ref,   &data,
+		mask_ref,   &mask,  
+		nrows,      ncols
+	);
+
+	/* ------------------------
+	 * Run the library function
+	 */
+        matrix = distancematrix (nrows,
+                                 ncols,
+                                 data,
+                                 mask,
+                                 weight,
+                                 dist[0],
+                                 transpose);
+
+
+	/* ------------------------
+	 * Convert generated C matrices to Perl matrices
+	 */
+	matrix_ref  = ragged_matrix_c2perl_dbl(aTHX_ matrix,  nobjects);
+
+	/* ------------------------
+	 * Push the new Perl matrices onto the return stack
+	 */
+	XPUSHs(sv_2mortal(matrix_ref));
+
+	/* ------------------------
+	 * Free what we've malloc'ed 
+	 */
+	free_ragged_matrix_dbl(matrix, nobjects);
+	free_matrix_int(mask, nrows);
+	free_matrix_dbl(data, nrows);
+	free(weight);
+
+	/* Finished _distancematrix() */
 
 
 void
@@ -1175,7 +1388,7 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxgrid,nygrid,ini
 	 */
 	nweights = (transpose==0) ? ncols : nrows;
 	malloc_matrices( aTHX_
-		weight_ref, &weight, &nweights, 
+		weight_ref, &weight, nweights, 
 		data_ref,   &matrix,
 		mask_ref,   &mask,  
 		nrows,      ncols

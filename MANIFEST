@@ -1,7 +1,5 @@
 MANIFEST
 README
-INSTALL
-AUTHORS
 Makefile.PL
 perl/Makefile.PL
 perl/Cluster.xs

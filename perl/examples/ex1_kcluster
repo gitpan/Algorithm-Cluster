@@ -56,7 +56,7 @@ my %params = (
 #------------------
 # Here is where we invoke the library function!
 #
-my ($clusters, $centroids, $found) = kcluster(%params);
+my ($clusters, $centroids, $error, $found) = kcluster(%params);
 #
 #------------------
 

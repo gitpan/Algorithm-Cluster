@@ -25,8 +25,6 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Version 1.10, released 2003.01.09, ANSI-C */
-
 #include <time.h>
 #include <stdlib.h>
 #include <math.h>
@@ -36,7 +34,6 @@
 #ifdef WINDOWS
 #  include <windows.h>
 #endif
-
 
 #define TOLERANCE 1.0e-12 /* Needed for the Singular Value Decomposition */
 
@@ -159,6 +156,7 @@ Based on Alan J. Miller's median.f90 routine.
 
 /* *********************************************************************  */
 
+static
 int compare(const void* a, const void* b)
 /* Helper function for sort. Previously, this was a nested function under sort,
  * which is not allowed under ANSI C.
@@ -184,7 +182,8 @@ void CALL sort(int n, const double data[], int index[])
   free(p);
 }
 
-void CALL getrank (int n, double data[], double rank[])
+static
+void getrank (int n, double data[], double rank[])
 /* Calculates the ranks of the elements in the array data. Two elements with the
  * same value get the same rank, equal to the average of the ranks had the
  * elements different values.
@@ -312,8 +311,9 @@ covered by the GPL license.
 
 /* ********************************************************************* */
 
+static
 double euclid (int n, double** data1, double** data2, int** mask1, int** mask2,
-  double weight[], int index1, int index2, int transpose)
+  const double weight[], int index1, int index2, int transpose)
  
 /*
 -- euclid routine --
@@ -393,8 +393,9 @@ Otherwise, the distance between two columns in the matrix is calculated.
 
 /* ********************************************************************* */
 
+static
 double harmonic(int n, double** data1, double** data2, int** mask1, int** mask2,
-  double weight[], int index1, int index2, int transpose)
+  const double weight[], int index1, int index2, int transpose)
  
 /*
 -- harmonic routine --
@@ -478,8 +479,9 @@ Otherwise, the distance between two columns in the matrix is calculated.
 
 /* ********************************************************************* */
 
+static
 double correlation (int n, double** data1, double** data2, int** mask1,
-  int** mask2, double weight[], int index1, int index2, int transpose)
+  int** mask2, const double weight[], int index1, int index2, int transpose)
 /*
 -- correlation routine --
 Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
@@ -583,8 +585,9 @@ Otherwise, the distance between two columns in the matrix is calculated.
 
 /* ********************************************************************* */
 
+static
 double acorrelation (int n, double** data1, double** data2, int** mask1,
-  int** mask2, double weight[], int index1, int index2, int transpose)
+  int** mask2, const double weight[], int index1, int index2, int transpose)
 /*
 -- acorrelation routine --
 Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
@@ -687,8 +690,9 @@ Otherwise, the distance between two columns in the matrix is calculated.
 
 /* ********************************************************************* */
 
+static
 double ucorrelation (int n, double** data1, double** data2, int** mask1,
-  int** mask2, double weight[], int index1, int index2, int transpose)
+  int** mask2, const double weight[], int index1, int index2, int transpose)
 /*
 -- ucorrelation routine --
 Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
@@ -787,8 +791,9 @@ Otherwise, the distance between two columns in the matrix is calculated.
 
 /* ********************************************************************* */
 
+static
 double uacorrelation (int n, double** data1, double** data2, int** mask1,
-  int** mask2, double weight[], int index1, int index2, int transpose)
+  int** mask2, const double weight[], int index1, int index2, int transpose)
 /*
 -- uacorrelation routine --
 Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
@@ -887,8 +892,9 @@ Otherwise, the distance between two columns in the matrix is calculated.
 
 /* *********************************************************************  */
 
+static
 double spearman (int n, double** data1, double** data2, int** mask1,
-  int** mask2, double weight[], int index1, int index2, int transpose)
+  int** mask2, const double weight[], int index1, int index2, int transpose)
 /*
 -- spearman routine --
 Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
@@ -1001,8 +1007,9 @@ Otherwise, the distance between two columns in the matrix is calculated.
 
 /* *********************************************************************  */
 
+static
 double kendall (int n, double** data1, double** data2, int** mask1, int** mask2,
-  double weight[], int index1, int index2, int transpose)
+  const double weight[], int index1, int index2, int transpose)
 /*
 -- kendall routine --
 Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
@@ -1117,8 +1124,10 @@ Otherwise, the distance between two columns in the matrix is calculated.
 
 /* *********************************************************************  */
 
+static
 void setmetric (char dist,
-  double (**metric) (int,double**,double**,int**,int**,double[],int,int,int) )
+  double (**metric)
+    (int,double**,double**,int**,int**, const double[],int,int,int) )
 { switch(dist)
   { case ('e'): *metric = &euclid; break;
     case ('h'): *metric = &harmonic; break;
@@ -1352,9 +1361,8 @@ columns (microarrays) are specified.
 /* ********************************************************************* */
 
 void getclustermedian(int nclusters, int nrows, int ncolumns,
-  double** data, int** mask, 
-  int clusterid[], double** cdata, int** cmask, int transpose)
-
+  double** data, int** mask, int clusterid[], double** cdata, int** cmask,
+  int transpose)
 /*
 -- getclustermedian routine --
 Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
@@ -1462,11 +1470,12 @@ columns (microarrays) are specified.
 
 /* ********************************************************************* */
 
-void CALL onepass (int nclusters, int nrows, int ncolumns,
+static
+void emalg (int nclusters, int nrows, int ncolumns,
   double** data, int** mask, double weight[], int transpose,
   void getclustercenter
     (int,int,int,double**,int**,int[],double**,int**,int),
-  double metric (int,double**,double**,int**,int**,double[],int,int,int),
+  double metric (int,double**,double**,int**,int**,const double[],int,int,int),
   int clusterid[], double** cdata, int** cmask)
 
 { const int nobjects = (transpose==0) ? nrows : ncolumns;
@@ -1517,10 +1526,10 @@ void CALL onepass (int nclusters, int nrows, int ncolumns,
 
     for (ii = 0; ii < nobjects; ii++)
     /* Calculate the distances */
-    { int jnow = clusterid[ii];
+    { int i = order[ii];
+      int jnow = clusterid[i];
       if (cn[jnow]>1)
-      /* No reassignment if that would lead to an empty cluster */
-      { int i = order[ii];
+      { /* No reassignment if that would lead to an empty cluster */
         /* Treat the present cluster as a special case */
         double distance =
           metric(ndata,data,cdata,mask,cmask,weight,i,jnow,transpose);
@@ -1569,22 +1578,22 @@ void CALL onepass (int nclusters, int nrows, int ncolumns,
 void CALL kcluster (int nclusters, int nrows, int ncolumns,
   double** data, int** mask, double weight[], int transpose,
   int npass, char method, char dist,
-  int clusterid[], double** cdata, int* ifound) 
+  int clusterid[], double** cdata, double* error, int* ifound) 
 /*
 -- kcluster routine --
 Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
 Laboratory of DNA Information Analysis, Human Genome Center
 Institute of Medical Science, University of Tokyo
-March 13, 2002
+April 12, 2003
 
 Purpose
 =======
 
 The kcluster routine performs k-means or k-median clustering on a given set of
-elements, using the Euclidean distance or the correlation as the distance
-measure. The number of clusters is given by the user. Multiple passes are
-being made to find the optimal clustering solution, each time starting from a
-different initial clustering.
+elements, using the specified distance measure. The number of clusters is given
+by the user. Multiple passes are being made to find the optimal clustering
+solution, each time starting from a different initial clustering.
+
 
 Arguments
 =========
@@ -1624,9 +1633,16 @@ Defines whether the arithmic mean (method=='a') or the median
 (method=='m') is used to calculate the cluster center.
 
 dist       (input) char
-Defines which distance measure is used. For dist==0, the Euclidean
-distance is used; for other values of dist, one minus the
-correlation is used.
+Defines which distance measure is used, as given by the table:
+dist=='e': Euclidean distance
+dist=='h': Harmonically summed Euclidean distance
+dist=='c': correlation
+dist=='a': absolute value of the correlation
+dist=='u': uncentered correlation
+dist=='x': absolute uncentered correlation
+dist=='s': Spearman's rank correlation
+dist=='k': Kendall's tau
+For other values of dist, the default (Euclidean distance) is used.
 
 clusterid  (output) int array, dimension( nrows or ncolumns )
 The cluster number to which a gene or microarray was assigned.
@@ -1636,6 +1652,10 @@ cdata      (output) double array, dimension( nclusters,ncolumns ) (transpose==0)
 This array contains the center of each cluster, as defined
 as the average of the elements for each cluster (if
 method=='a') or as the median (if method=='m').
+
+error      (output) double
+The sum of distances to the cluster center of each item in the optimal k-means
+clustering solution that was found.
 
 ifound     (output) int
 The number of times the optimal clustering solution was
@@ -1647,9 +1667,9 @@ found. The value of ifound is at least 1; its maximum value is npass.
   const int ndata = (transpose==0) ? ncolumns : nrows;
   void (*getclustercenter)
     (int,int,int,double**,int**,int[],double**,int**,int);
-  double (*metric) (int,double**,double**,int**,int**,double[],int,int,int);
+  double (*metric)
+    (int,double**,double**,int**,int**,const double[],int,int,int);
   int i;
-  double ssin = 0.;
   int** cmask;
   int** tcmask;
   double** tcdata;
@@ -1685,12 +1705,13 @@ found. The value of ifound is at least 1; its maximum value is npass.
       cmask[i] = (int*)malloc((size_t)nclusters*sizeof(int));
   }
 
-  onepass(nclusters, nrows, ncolumns, data, mask, weight, transpose,
+  *error = 0.;
+  emalg(nclusters, nrows, ncolumns, data, mask, weight, transpose,
     getclustercenter, metric, clusterid, cdata, cmask);
 
   for (i = 0; i < nobjects; i++)
   { int j = clusterid[i];
-    ssin += metric(ndata, data, cdata, mask, cmask, weight, i, j, transpose);
+    *error += metric(ndata, data, cdata, mask, cmask, weight, i, j, transpose);
   }
   if (transpose==0)
     for (i = 0; i < nclusters; i++) free(cmask[i]);
@@ -1722,7 +1743,7 @@ found. The value of ifound is at least 1; its maximum value is npass.
     int* mapping = (int*)malloc((size_t)nclusters*sizeof(int));
     int same = 1;
 
-    onepass(nclusters, nrows, ncolumns, data, mask, weight, transpose,
+    emalg(nclusters, nrows, ncolumns, data, mask, weight, transpose,
       getclustercenter, metric, tclusterid, tcdata, tcmask);
 
     for (i = 0; i < nclusters; i++) mapping[i] = -1;
@@ -1736,10 +1757,10 @@ found. The value of ifound is at least 1; its maximum value is npass.
     free(mapping);
 
     if (same) (*ifound)++;
-    else if (tssin < ssin)
+    else if (tssin < *error)
     { int j;
       *ifound = 1;
-      ssin = tssin;
+      *error = tssin;
       for (i = 0; i < nobjects; i++) clusterid[i] = tclusterid[i];
       if (transpose==0)
       { for (i = 0; i < nclusters; i++)
@@ -1778,7 +1799,7 @@ found. The value of ifound is at least 1; its maximum value is npass.
 /* ******************************************************************** */
 
 double** CALL distancematrix (int nrows, int ncolumns, double** data,
-  int** mask, double* weight, char dist, int transpose)
+  int** mask, double weights[], char dist, int transpose)
               
 /*
 -- distancematrix routine --
@@ -1849,7 +1870,8 @@ when microarrays are being clustered.
   const int ndata = (transpose==0) ? ncolumns : nrows;
   int i,j;
   double** matrix;
-  double (*metric) (int,double**,double**,int**,int**,double[],int,int,int);
+  double (*metric)
+    (int,double**,double**,int**,int**,const double[],int,int,int);
 
   if (n < 2) return 0;
 
@@ -1857,7 +1879,7 @@ when microarrays are being clustered.
   matrix = (double**) malloc((size_t)n*sizeof(double*));
   for (i = 1; i < n; i++)
     matrix[i] = (double*) malloc((size_t)i*sizeof(double));
-  /* The zeroth row has zero columns. We allocate it anyway for convenience. */
+  /* The zeroth row has zero columns. It was allocates anyway for convenience.*/
   matrix[0] = 0;
 
   /* Set the metric function as indicated by dist */
@@ -1866,14 +1888,15 @@ when microarrays are being clustered.
   /* Calculate the distances and save them in the ragged array */
   for (i = 0; i < n; i++)
     for (j = 0; j < i; j++)
-      matrix[i][j]=metric(ndata,data,data,mask,mask,weight,i,j,transpose);
+      matrix[i][j]=metric(ndata,data,data,mask,mask,weights,i,j,transpose);
   return matrix;
 }
 
 
 /* ******************************************************************** */
 
-double CALL getscale(int nelements, double** distmatrix, char dist)
+static
+double getscale(int nelements, double** distmatrix, char dist)
 
 /*
 -- getscale routine --
@@ -1936,56 +1959,45 @@ For other values of dist, no scaling is done.
 
 /* ******************************************************************** */
 
-void CALL pclworker (int nrows, int ncolumns, double** data, int** mask,
-  double* weight, double** distmatrix, char dist, int transpose,
+static
+void pclcluster (int nrows, int ncolumns, double** data, int** mask,
+  double weight[], double** distmatrix, char dist, int transpose,
   int result[][2], double linkdist[])
 
 /*
--- pclworker routine --
-Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
-Laboratory of DNA Information Analysis, Human Genome Center
-Institute of Medical Science, University of Tokyo
-June 6, 2002
 
 Purpose
 =======
 
-The pclworker routine performs clustering using pairwise centroid-linking
-on a given data set of gene expression measurements, using the distance measure
-as specified by dist. This function is called by pclcluster after the distance
-matrix has been calculated. This allows the distance matrix, calculated by
-distancematrix, to be saved before continuing the clustering algorithm.
+The pclcluster routine performs clustering using pairwise centroid-linking
+on a given set of gene expression data, using the distance metric given by dist.
 
 Arguments
 =========
 
 nrows     (input) int
-The number of rows in the matrix (corresponding to the number of genes).
+The number of rows in the gene expression data matrix, equal to the number of
+genes.
 
-ncolumns      (input) int
-The number of columns in the matrix (corresponding to the number of
-microarrays).
+ncolumns  (input) int
+The number of columns in the gene expression data matrix, equal to the number of
+microarrays.
 
 data       (input) double array, dimension( nrows,ncolumns )
-The array containing the gene expression data to be clustered.
+The array containing the gene expression data.
 
 mask       (input) int array, dimension( nrows,ncolumns )
 This array shows which data values are missing. If
-mask(i,j) == 0, then data(i,j) is missing.
+mask[i][j] == 0, then data[i][j] is missing.
 
-weight     (input) double array, dimension( ndata )
-The weights that are used to calculate the distances between genes or
-microarrays. The length of this vector (ndata) is the number of columns
-(microarrays) if genes are clustered, or the number of rows (genes) if arrays
-are clustered.
+weight (input) double array, dimension( n )
+The weights that are used to calculate the distance. The length of this vector
+is ncolumns if genes are being clustered, and nrows if microarrays are being
+clustered.
 
-distmatrix (input) double array, ragged
-  (number of rows is nobjects, number of columns is equal to the row number,
-   where nobjects=nrows if genes are clustered, or nobjects=ncolumns if
-   microarrays are clustered)
-The distance matrix. To save space, the distance matrix is given in the
-form of a ragged array. The distance matrix is symmetric and has zeros
-on the diagonal. See distancematrix for a description of the content.
+transpose  (input) int
+If transpose==0, the rows of the matrix are clustered. Otherwise, columns
+of the matrix are clustered.
 
 dist       (input) char
 Defines which distance measure is used, as given by the table:
@@ -1999,42 +2011,40 @@ dist=='s': Spearman's rank correlation
 dist=='k': Kendall's tau
 For other values of dist, the default (Euclidean distance) is used.
 
-tranpose   (input) int
-If tranpose==0, then the rows (genes) in the data matrix are clustered. If
-transpose is nonzero, the columns (microarrays) in the data matrix are
-clustered.
+distmatrix (input) double**
+The distance matrix. This matrix is precalculated by the calling routine
+treecluster. The pclcluster routine modifies the contents of distmatrix, but
+does not deallocate it.
 
-result  (output) int array, dimension( nnodes,2 )
+result  (output) int array, dimension( nelements,2 )
 The clustering solution. Each row in the matrix describes one linking event,
 with the two columns containing the name of the nodes that were joined.
-If genes are being clustered, then the original genes are numbered 0..ngenes-1,
-while nodes are numbered -1..-(ngenes-1). Likewise for microarrays. The number
-of nodes nnodes is the number of genes or microarrays minus one.
+The original genes are numbered 0..ngenes-1, nodes are numbered 
+-1..-(nelements-1), where nelements is nrows or ncolumns depending on whether
+genes (rows) or microarrays (columns) are being clustered.
 
-linkdist (output) double array, dimension( nnodes )
+linkdist (output) double array, dimension(nelements-1)
 For each node, the distance between the two subnodes that were joined. The
 number of nodes (nnodes) is equal to the number of genes minus one if genes are
 clustered, or the number of microarrays minus one if microarrays are clustered.
 
 ========================================================================
 */
-{ double (*metric) (int,double**,double**,int**,int**,double[],int,int,int);
+{ double (*metric)
+    (int,double**,double**,int**,int**,const double[],int,int,int);
   int i,j;
-  int* distid;
+  const int nelements = (transpose==0) ? nrows : ncolumns;
+  int* distid = (int*)malloc((size_t)nelements*sizeof(int));
   double** nodedata;
   int** nodecount;
   int inode;
-
   const int ndata = transpose ? nrows : ncolumns;
-  const int nobjects = transpose ? ncolumns : nrows;
-  const int nnodes = nobjects - 1;
-  if (nnodes < 1) return;
+  const int nnodes = nelements - 1;
 
   /* Set the metric function as indicated by dist */
   setmetric (dist, &metric);
 
-  distid = (int*)malloc((size_t)nobjects*sizeof(int));
-  for (i = 0; i < nobjects; i++) distid[i] =i;
+  for (i = 0; i < nelements; i++) distid[i] =i;
   /* To remember which row/column in the distance matrix contains what */
 
   /* Storage for node data */
@@ -2060,7 +2070,7 @@ clustered, or the number of microarrays minus one if microarrays are clustered.
     int isaved = 1;
     int jsaved = 0;
     double distance = distmatrix[1][0];
-    for (i = 0; i < nobjects-inode; i++)
+    for (i = 0; i < nelements-inode; i++)
       for (j = 0; j < i; j++)
       { if (distmatrix[i][j]<distance)
         { distance = distmatrix[i][j];
@@ -2190,78 +2200,39 @@ clustered, or the number of microarrays minus one if microarrays are clustered.
   free(nodedata);
   free(nodecount);
   free(distid);
+ 
   return;
 }
 
 /* ********************************************************************* */
 
-void CALL pclcluster (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int applyscale, int transpose, char dist, int result[][2],
+static
+void pslcluster (int nelements, double** distmatrix, int result[][2],
   double linkdist[])
-              
 /*
--- pclcluster routine --
-Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
-Laboratory of DNA Information Analysis, Human Genome Center
-Institute of Medical Science, University of Tokyo
-March 22, 2002
 
 Purpose
 =======
 
-The pclcluster routine performs clustering using pairwise centroid-linking
-on a given set of gene expression data, using the distance metric given by dist.
+The pslcluster routine performs clustering using pairwise single-linking
+on the given distance matrix.
 
 Arguments
 =========
 
-nrows     (input) int
-The number of rows in the gene expression data matrix, equal to the number of
-genes.
+nelements     (input) int
+The number of elements to be clustered.
 
-ncolumns  (input) int
-The number of columns in the gene expression data matrix, equal to the number of
-microarrays.
+distmatrix (input) double**
+The distance matrix, with nelements rows, each row being filled up to the
+diagonal. The elements on the diagonal are not used, as they are assumed to be
+zero. The distance matrix will be modified by this routine.
 
-data       (input) double array, dimension( nrows,ncolumns )
-The array containing the gene expression data.
-
-mask       (input) int array, dimension( nrows,ncolumns )
-This array shows which data values are missing. If
-mask[i][j] == 0, then data[i][j] is missing.
-
-weight (input) double array, dimension( n )
-The weights that are used to calculate the distance. The length of this vector
-is ncolumns if genes are being clustered, and nrows if microarrays are being
-clustered.
-
-applyscale      (input) int
-If applyscale is nonzero, then the distances in linkdist are scaled such
-that all distances are between zero and two, as in case of the Pearson
-distance. Otherwise, no scaling is applied.
-
-transpose  (input) int
-If transpose==0, the rows of the matrix are clustered. Otherwise, columns
-of the matrix are clustered.
-
-dist       (input) char
-Defines which distance measure is used, as given by the table:
-dist=='e': Euclidean distance
-dist=='h': Harmonically summed Euclidean distance
-dist=='c': correlation
-dist=='a': absolute value of the correlation
-dist=='u': uncentered correlation
-dist=='x': absolute uncentered correlation
-dist=='s': Spearman's rank correlation
-dist=='k': Kendall's tau
-For other values of dist, the default (Euclidean distance) is used.
-
-result  (output) int array, dimension( nobjects,2 )
+result  (output) int array, dimension( nelements,2 )
 The clustering solution. Each row in the matrix describes one linking event,
 with the two columns containing the name of the nodes that were joined.
-The original genes are numbered 0..ngenes-1, nodes are numbered 
--1..-(nobjects-1), where nobjects is nrows or ncolumns depending on whether
-genes (rows) or microarrays (columns) are being clustered.
+The original elements are numbered 0..nelements-1, nodes are numbered 
+-1..-(nelements-1).
 
 linkdist (output) double array, dimension(nelements-1)
 For each node, the distance between the two subnodes that were joined. The
@@ -2270,80 +2241,11 @@ clustered, or the number of microarrays minus one if microarrays are clustered.
 
 ========================================================================
 */
-{ const int nelements = (transpose==0) ? nrows : ncolumns;
-  double** distmatrix;
-  int i;
-
-  if (nelements < 2) return;
-
-  distmatrix = 
-    distancematrix (nrows, ncolumns, data, mask, weight, dist, transpose);
-  pclworker
-    (nrows,ncolumns,data,mask,weight,distmatrix,dist,transpose,result,linkdist);
-  if (applyscale)
-  { double scale = getscale(nelements, distmatrix, dist);
-    for (i = 0; i < nelements-1; i++) linkdist[i] /= scale;
-  }
-
-  /* Deallocate space for distance matrix */
-  for (i = 1; i < nelements; i++) free(distmatrix[i]);
-  free (distmatrix);
- 
-  return;
-}
-
-/* ********************************************************************* */
-
-void CALL pslworker (int nelements, double** distmatrix, int result[][2],
-  double linkdist[])
-/*
--- pslworker routine --
-Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
-Laboratory of DNA Information Analysis, Human Genome Center
-Institute of Medical Science, University of Tokyo
-May 16, 2002
-
-Purpose
-=======
-
-The pslworker routine performs clustering using pairwise single-linking
-on a given set of gene expression data, using a distance measure as defined by
-dist. This routine is called by pslcluster after the distance matrix has been
-calculated. This allows the distance matrix, calculated by distancematrix,
-to be saved before continuing the clustering algorithm.
-
-
-Arguments
-=========
-
-nelements     (input) int
-The number of elements to be clustered (i.e., the number of genes or
-microarrays).
-
-distmatrix (input) double array, ragged
-  (number of rows is nelements, number of columns is equal to the row number)
-The distance matrix. To save space, the distance matrix is given in the
-form of a ragged array. The distance matrix is symmetric and has zeros
-on the diagonal. See distancematrix for a description of the content.
-
-result  (output) int array, dimension( nelements,2 )
-The clustering solution. Each row in the matrix describes one linking event.
-The two columns contain the names of the nodes that were joined. The original
-genes are numbered 0..nelements-1, nodes are numbered -1..-(nelements-1).
-
-linkdist (output) double array, dimension( nelements-1 )
-For each node, the distance between the two subnodes that were joined.
-
-========================================================================
-*/
-{ int i,j;
-  int* clusterid;
+{ int i, j;
   int nNodes;
 
-  if (nelements < 2) return;
-
   /* Setup a list specifying to which cluster a gene belongs */
-  clusterid = (int*)malloc((size_t)nelements*sizeof(int));
+  int* clusterid = (int*)malloc((size_t)nelements*sizeof(int));
   for (i = 0; i < nelements; i++) clusterid[i] = i;
 
   for (nNodes = nelements; nNodes > 1; nNodes--)
@@ -2381,69 +2283,33 @@ For each node, the distance between the two subnodes that were joined.
     clusterid[isaved] = clusterid[nNodes-1];
   }
   free(clusterid);
+ 
   return;
 }
 
 /* ******************************************************************** */
 
-void CALL pslcluster (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int applyscale, int transpose, char dist, int result[][2],
+static
+void pmlcluster (int nelements, double** distmatrix, int result[][2],
   double linkdist[])
 /*
--- pslcluster routine --
-Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
-Laboratory of DNA Information Analysis, Human Genome Center
-Institute of Medical Science, University of Tokyo
-March 26, 2002
 
 Purpose
 =======
 
-The pslcluster routine performs clustering using pairwise single-linking
-on a given set of gene expression data, using the distance metric given by dist.
+The pmlcluster routine performs clustering using pairwise maximum- (complete-)
+linking on the given distance matrix.
 
 Arguments
 =========
 
-nrows     (input) int
-The number of rows in the data matrix, equal to the number of genes.
+nelements     (input) int
+The number of elements to be clustered.
 
-ncolumns  (input) int
-The number of columns in the data matrix, equal to the number of microarrays.
-
-data       (input) double array, dimension( nrows,ncolumns )
-The array containing the gene expression data.
-
-mask       (input) int array, dimension( nrows,ncolumns )
-This array shows which data values are missing. If
-mask[i][j] == 0, then data[i][j] is missing.
-
-weight (input) double array, dimension( n )
-The weights that are used to calculate the distance. The length of this vector
-is ncolumns if genes are being clustered, and nrows if microarrays are being
-clustered.
-
-applyscale      (input) int
-If applyscale is nonzero, then the distances in linkdist are scaled such
-that all distances are between zero and two, as in case of the Pearson
-distance. Otherwise, no scaling is applied.
-
-
-transpose  (input) int
-If transpose==0, the rows (genes) of the matrix are clustered. Otherwise,
-columns (microarrays) of the matrix are clustered.
-
-dist       (input) char
-Defines which distance measure is used, as given by the table:
-dist=='e': Euclidean distance
-dist=='h': Harmonically summed Euclidean distance
-dist=='c': correlation
-dist=='a': absolute value of the correlation
-dist=='u': uncentered correlation
-dist=='x': absolute uncentered correlation
-dist=='s': Spearman's rank correlation
-dist=='k': Kendall's tau
-For other values of dist, the default (Euclidean distance) is used.
+distmatrix (input) double**
+The distance matrix, with nelements rows, each row being filled up to the
+diagonal. The elements on the diagonal are not used, as they are assumed to be
+zero. The distance matrix will be modified by this routine.
 
 result  (output) int array, dimension( nelements,2 )
 The clustering solution. Each row in the matrix describes one linking event,
@@ -2458,76 +2324,11 @@ clustered, or the number of microarrays minus one if microarrays are clustered.
 
 ========================================================================
 */
-{ const int nelements = (transpose==0) ? nrows : ncolumns;
-  double** distmatrix;
-  int i;
-
-  if (nelements < 2) return;
-
-  distmatrix = 
-    distancematrix (nrows, ncolumns, data, mask, weight, dist, transpose);
-  pslworker (nelements, distmatrix, result, linkdist);
-  if (applyscale)
-  { double scale = getscale(nelements, distmatrix, dist);
-    for (i = 0; i < nelements-1; i++) linkdist[i] /= scale;
-  }
- 
-  /* Deallocate space for distance matrix */
-  for (i = 1; i < nelements; i++) free(distmatrix[i]);
-  free (distmatrix);
- 
-  return;
-}
-
-/* ******************************************************************** */
-
-void CALL pmlworker (int nelements, double** distmatrix, int result[][2],
-  double linkdist[])
-/*
--- pmlworker routine --
-Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
-Laboratory of DNA Information Analysis, Human Genome Center
-Institute of Medical Science, University of Tokyo
-May 7, 2002
-
-Purpose
-=======
-
-The pmlworker routine performs clustering using pairwise maximum-linking
-on a given set of gene expression data, using the distance matrix supplied to
-this routine. The routine is called by pmlcluster after the distance matrix has
-been calculated. This allows the distance matrix, calculated by distancematrix,
-to be saved before continuing the clustering algorithm.
-
-Arguments
-=========
-
-nelements     (input) int
-The number of elements (genes or microarrays) to be clustered.
-
-distmatrix (input) double array, ragged
-  (number of rows is nelements, number of columns is equal to the row number)
-The distance matrix. To save space, the distance matrix is given in the
-form of a ragged array. The distance matrix is symmetric and has zeros
-on the diagonal. See distancematrix for a description of the content.
-
-result  (output) int array, dimension( nelements,2 )
-The clustering solution. Each row in the matrix describes one linking event.
-The two columns contain the names of the nodes that were joined. The original
-genes are numbered 0..nelements-1, nodes are numbered -1..-(nelements-1).
-
-linkdist (output) double array, dimension( nelements-1 )
-For each node, the distance between the two subnodes that were joined.
-
-========================================================================
-*/
 { int i,j;
-  int* clusterid;
   int nNodes;
-  if (nelements < 2) return;
 
   /* Setup a list specifying to which cluster a gene belongs */
-  clusterid = (int*)malloc((size_t)nelements*sizeof(int));
+  int* clusterid = (int*)malloc((size_t)nelements*sizeof(int));
   for (i = 0; i < nelements; i++) clusterid[i] = i;
 
   for (nNodes = nelements; nNodes > 1; nNodes--)
@@ -2564,74 +2365,39 @@ For each node, the distance between the two subnodes that were joined.
     clusterid[isaved] = clusterid[nNodes-1];
   }
   free(clusterid);
+
   return;
 }
 
 /* ******************************************************************* */
 
-void CALL pmlcluster (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int applyscale, int transpose, char dist, int result[][2],
+static
+void palcluster (int nelements, double** distmatrix, int result[][2],
   double linkdist[])
 /*
--- pmlcluster routine --
-Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
-Laboratory of DNA Information Analysis, Human Genome Center
-Institute of Medical Science, University of Tokyo
-March 26, 2002
 
 Purpose
 =======
 
-The pmlcluster routine performs clustering using pairwise maximum-linkage
-on a given set of vectors, using the distance metric given by dist.
+The palcluster routine performs clustering using pairwise average
+linking on the given distance matrix.
 
 Arguments
 =========
 
-nrows     (input) int
-The number of rows in the data matrix, equal to the number of genes.
+nelements     (input) int
+The number of elements to be clustered.
 
-ncolumns  (input) int
-The number of columns in the data matrix, equal to the number of microarrays.
-
-data       (input) double array, dimension( nrows,ncolumns )
-The array containing the gene expression data.
-
-mask       (input) int array, dimension( nrows,ncolumns )
-This array shows which data values are missing. If
-mask[i][j] == 0, then data[i][j] is missing.
-
-weight (input) double array, dimension( n )
-The weights that are used to calculate the distance.
-
-applyscale      (input) int
-If applyscale is nonzero, then the distances in linkdist are scaled such
-that all distances are between zero and two, as in case of the Pearson
-distance. Otherwise, no scaling is applied.
-
-
-transpose  (input) int
-If transpose==0, the rows of the matrix are clustered. Otherwise, columns
-of the matrix are clustered.
-
-dist       (input) char
-Defines which distance measure is used, as given by the table:
-dist=='e': Euclidean distance
-dist=='h': Harmonically summed Euclidean distance
-dist=='c': correlation
-dist=='a': absolute value of the correlation
-dist=='u': uncentered correlation
-dist=='x': absolute uncentered correlation
-dist=='s': Spearman's rank correlation
-dist=='k': Kendall's tau
-For other values of dist, the default (Euclidean distance) is used.
+distmatrix (input) double**
+The distance matrix, with nelements rows, each row being filled up to the
+diagonal. The elements on the diagonal are not used, as they are assumed to be
+zero. The distance matrix will be modified by this routine.
 
 result  (output) int array, dimension( nelements,2 )
 The clustering solution. Each row in the matrix describes one linking event,
 with the two columns containing the name of the nodes that were joined.
 The original elements are numbered 0..nelements-1, nodes are numbered 
--1..-(nelements-1), where nelements is nrows or ncolumns depending on whether
-genes (rows) or microarrays (columns) are being clustered.
+-1..-(nelements-1).
 
 linkdist (output) double array, dimension(nelements-1)
 For each node, the distance between the two subnodes that were joined. The
@@ -2640,84 +2406,18 @@ clustered, or the number of microarrays minus one if microarrays are clustered.
 
 ========================================================================
 */
-{ const int nelements = (transpose==0) ? nrows : ncolumns;
-  double** distmatrix;
-  int i;
-
-  if (nelements < 2) return;
-
-  distmatrix = 
-    distancematrix (nrows, ncolumns, data, mask, weight, dist, transpose);
-  pmlworker (nelements, distmatrix, result, linkdist);
-  if (applyscale)
-  { double scale = getscale(nelements, distmatrix, dist);
-    for (i = 0; i < nelements-1; i++) linkdist[i] /= scale;
-  }
- 
-  /* Deallocate space for distance matrix */
-  for (i = 1; i < nelements; i++) free(distmatrix[i]);
-  free (distmatrix);
- 
-  return;
-}
-
-/* ******************************************************************* */
-
-void CALL palworker (int nelements, double** distmatrix, int result[][2],
-  double linkdist[])
-/*
--- palworker routine --
-Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
-Laboratory of DNA Information Analysis, Human Genome Center
-Institute of Medical Science, University of Tokyo
-January 20, 2003
-
-Purpose
-=======
-
-The palworker routine performs clustering using pairwise average-linking
-on a given set of gene expression data, using a distance measure as defined by
-dist. This routine is called by palcluster after the distance matrix has been
-calculated. This allows the distance matrix, calculated by distancematrix,
-to be saved before continuing the clustering algorithm.
-
-
-Arguments
-=========
-
-nelements     (input) int
-The number of elements (genes or microarrays) to be clustered.
-
-distmatrix (input) double array, ragged
-  (number of rows is nelements, number of columns is equal to the row index)
-The distance matrix. To save space, the distance matrix is given in the
-form of a ragged array. The distance matrix is symmetric and has zeros
-on the diagonal. See distancematrix for a description of the content.
-
-result  (output) int array, dimension( nelements-1,2 )
-The clustering solution. Each row in the matrix describes one linking event.
-The two columns contain the names of the nodes that were joined. The original
-genes are numbered 0..nelements-1, nodes are numbered -1..-(nelements-1).
-
-linkdist (output) double array, dimension( nelements-1 )
-For each node, the distance between the two subnodes that were joined.
-
-========================================================================
-*/
 { int i,j;
-  int* number;
-  int* clusterid;
   int nNodes;
 
-  if (nelements < 2) return;
-
-  number = (int*)malloc((size_t)nelements*sizeof(int));
-  for (i = 0; i < nelements; i++) number[i] = 1;
-     
-
+  /* Keep track of the number of elements in each cluster
+   * (needed to calculate the average) */
+  int* number = (int*)malloc((size_t)nelements*sizeof(int));
   /* Setup a list specifying to which cluster a gene belongs */
-  clusterid = (int*)malloc((size_t)nelements*sizeof(int));
-  for (i = 0; i < nelements; i++) clusterid[i] = i;
+  int* clusterid = (int*)malloc((size_t)nelements*sizeof(int));
+  for (i = 0; i < nelements; i++)
+  { number[i] = 1;
+    clusterid[i] = i;
+  }
 
   for (nNodes = nelements; nNodes > 1; nNodes--)
   { int sum;
@@ -2771,26 +2471,23 @@ For each node, the distance between the two subnodes that were joined.
   }
   free(clusterid);
   free(number);
+
   return;
 }
 
 /* ******************************************************************* */
 
-void CALL palcluster (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int applyscale, int transpose, char dist, int result[][2],
-  double linkdist[])
+void CALL treecluster (int nrows, int ncolumns, double** data, int** mask,
+  double weight[], int applyscale, int transpose, char dist, char method,
+  int result[][2], double linkdist[], double** distmatrix)
 /*
--- palcluster routine --
-Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
-Laboratory of DNA Information Analysis, Human Genome Center
-Institute of Medical Science, University of Tokyo
-March 26, 2002
 
 Purpose
 =======
 
-The palcluster routine performs clustering using pairwise average-linkage
-on a given set of gene expression data, using the distance metric given by dist.
+The treecluster routine performs hierarchical clustering using pairwise
+single-, maximum-, centroid-, or average-linkage, as defined by method, on a
+given set of gene expression data, using the distance metric given by dist.
 
 Arguments
 =========
@@ -2832,6 +2529,17 @@ dist=='s': Spearman's rank correlation
 dist=='k': Kendall's tau
 For other values of dist, the default (Euclidean distance) is used.
 
+method     (input) char
+Defines which hierarchical clustering method is used:
+method=='s': pairwise single-linkage clustering
+method=='m': pairwise maximum- (or complete-) linkage clustering
+method=='a': pairwise average-linkage clustering
+method=='c': pairwise centroid-linkage clustering
+For the first three, either the distance matrix or the gene expression data is
+sufficient to perform the clustering algorithm. For pairwise centroid-linkage
+clustering, however, the gene expression data are always needed, even if the
+distance matrix itself is available.
+
 result  (output) int array, dimension( nelements-1,2 )
 The clustering solution. Each row in the matrix describes one linking event,
 with the two columns containing the name of the nodes that were joined.
@@ -2844,136 +2552,69 @@ For each node, the distance between the two subnodes that were joined. The
 number of nodes (nnodes) is equal to the number of genes minus one if genes are
 clustered, or the number of microarrays minus one if microarrays are clustered.
 
+distmatrix (input) double**
+The distance matrix. If the distance matrix is zero initially, the distance
+matrix will be allocated and calculated from the data by treecluster, and
+deallocated before treecluster returns. If the distance matrix is passed by the
+calling routine, treecluster will modify the contents of the distance matrix as
+part of the clustering algorithm, but will not deallocate it. The calling
+routine should deallocate the distance matrix after the return from treecluster.
+
 ========================================================================
 */
 { const int nelements = (transpose==0) ? nrows : ncolumns;
-  double** distmatrix;
+  const int ldistmatrix = (distmatrix==0) ? 0 : 1;
   int i;
 
   if (nelements < 2) return;
 
-  distmatrix = 
-    distancematrix (nrows, ncolumns, data, mask, weight, dist, transpose);
-  palworker (nelements, distmatrix, result, linkdist);
+  /* Calculate the distance matrix if the user didn't give it */
+  if(!ldistmatrix)
+    distmatrix = 
+      distancematrix (nrows, ncolumns, data, mask, weight, dist, transpose);
+
+  switch(method) 
+  { case 's':
+      pslcluster(nelements, distmatrix, result, linkdist);
+      break;
+    case 'm':
+      pmlcluster(nelements, distmatrix, result, linkdist);
+      break;
+    case 'a':
+      palcluster(nelements, distmatrix, result, linkdist);
+      break;
+    case 'c':
+      pclcluster(nrows, ncolumns, data, mask, weight, distmatrix, dist,
+		transpose, result, linkdist);
+      break;
+  }
+
+  /* Scale the distances in linkdist if so requested */
   if (applyscale)
   { double scale = getscale(nelements, distmatrix, dist);
     for (i = 0; i < nelements-1; i++) linkdist[i] /= scale;
   }
  
-  /* Deallocate space for distance matrix */
-  for (i = 1; i < nelements; i++) free(distmatrix[i]);
-  free (distmatrix);
+  /* Deallocate space for distance matrix, if it was allocated by treecluster */
+  if (!ldistmatrix)
+  { for (i = 1; i < nelements; i++) free(distmatrix[i]);
+    free (distmatrix);
+  }
  
   return;
 }
 
 /* ******************************************************************* */
 
-void CALL somcluster (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int transpose, int nxnodes, int nynodes, int niter,
-  char dist, int clusterid[][2])
- 
-/*
--- somcluster routine --
-Michiel de Hoon (mdehoon@ims.u-tokyo.ac.jp)
-Laboratory of DNA Information Analysis, Human Genome Center
-Institute of Medical Science, University of Tokyo
-March 28, 2002
-
-Purpose
-=======
-
-The somcluster routine implements a self-organizing map (Kohonen) on a
-rectangular grid, using a given set of vectors. The distance measure to be
-used to find the similarity between genes and nodes is given by dist.
-
-Arguments
-=========
-
-nrows     (input) int
-The number of rows in the data matrix, equal to the number of genes.
-
-ncolumns  (input) int
-The number of columns in the data matrix, equal to the number of microarrays.
-
-data       (input) double array, dimension( nrows,ncolumns )
-The array containing the gene expression data.
-
-mask       (input) int array, dimension( nrows,ncolumns )
-This array shows which data values are missing. If
-mask[i][j] == 0, then data[i][j] is missing.
-
-weight (input) double array, dimension( n )
-The weights that are used to calculate the distance. The length of this vector
-is ncolumns if genes are being clustered, or nrows if microarrays are being
-clustered.
-
-transpose  (input) int
-If transpose==0, the rows of the matrix are clustered. Otherwise, columns
-of the matrix are clustered.
-
-nxnodes    (input) int
-The number of grid cells horizontally in the rectangular topology of clusters.
-
-nynodes    (input) int
-The number of grid cells horizontally in the rectangular topology of clusters.
-
-niter      (input) int
-The number of iterations to be performed.
-
-dist       (input) char
-Defines which distance measure is used, as given by the table:
-dist=='e': Euclidean distance
-dist=='h': Harmonically summed Euclidean distance
-dist=='c': correlation
-dist=='a': absolute value of the correlation
-dist=='u': uncentered correlation
-dist=='x': absolute uncentered correlation
-dist=='s': Spearman's rank correlation
-dist=='k': Kendall's tau
-For other values of dist, the default (Euclidean distance) is used.
-
-
-External Functions:
-ranlib: float genunf(float low, float high)
-ranlib: void genprm(long* iarray, int larray)
-
-========================================================================
-*/
-{ const int nobjects = (transpose==0) ? nrows : ncolumns;
-  const int ndata = (transpose==0) ? ncolumns : nrows;
-  int i,j;
-  double*** nodesdata;
-
-  if (nobjects < 2) return;
-  nodesdata = (double***) malloc((size_t)nxnodes*nynodes*ndata*sizeof(double**));
-  for (i = 0; i < nxnodes; i++)
-    nodesdata[i] = (double**) malloc((size_t)nynodes*ndata*sizeof(double*));
-  for (i = 0; i < nxnodes; i++)
-    for (j = 0; j < nynodes; j++)
-      nodesdata[i][j] = (double*) malloc((size_t)ndata*sizeof(double));
-  somworker (nrows, ncolumns, data, mask, weight, transpose, nxnodes, nynodes,
-    0.02, nodesdata, niter, dist);
-  somassign (nrows, ncolumns, data, mask, weight, transpose, nxnodes, nynodes,
-    nodesdata, dist, clusterid);
-  for (i = 0; i < nxnodes; i++)
-    for (j = 0; j < nynodes; j++)
-      free(nodesdata[i][j]);
-  for (i = 0; i < nxnodes; i++)
-    free(nodesdata[i]);
-  free(nodesdata);
-  return;
-}
-
-/* ******************************************************************* */
-
-void CALL somworker (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int transpose, int nxnodes, int nynodes, double inittau,
-  double*** nodesdata, int niter, char dist)
+static
+void somworker (int nrows, int ncolumns, double** data, int** mask,
+  const double weights[], int transpose, int nxgrid, int nygrid,
+  double inittau, double*** celldata, int niter, char dist)
 
 { const int nelements = (transpose==0) ? nrows : ncolumns;
   const int ndata = (transpose==0) ? ncolumns : nrows;
-  double (*metric) (int,double**,double**,int**,int**,double[],int,int,int);
+  double (*metric)
+    (int,double**,double**,int**,int**,const double[],int,int,int);
   int i, j;
   double* stddata = (double*)malloc((size_t)nelements*sizeof(double));
   int** dummymask;
@@ -2981,7 +2622,7 @@ void CALL somworker (int nrows, int ncolumns, double** data, int** mask,
   long* index;
   int iter;
   /* Maximum radius in which nodes are adjusted */
-  double maxradius = sqrt(nxnodes*nxnodes+nynodes*nynodes);
+  double maxradius = sqrt(nxgrid*nxgrid+nygrid*nygrid);
 
   /* Initialize the random number generator */
   initran();
@@ -3016,10 +2657,10 @@ void CALL somworker (int nrows, int ncolumns, double** data, int** mask,
   }
 
   if (transpose==0)
-  { dummymask = (int**)malloc((size_t)nynodes*sizeof(int*));
-    for (i = 0; i < nynodes; i++)
+  { dummymask = (int**)malloc((size_t)nygrid*sizeof(int*));
+    for (i = 0; i < nygrid; i++)
       dummymask[i] = (int*)malloc((size_t)ndata*sizeof(int));
-    for (i = 0; i < nynodes; i++)
+    for (i = 0; i < nygrid; i++)
       for (j = 0; j < ndata; j++)
         dummymask[i][j] = 1;
   }
@@ -3032,17 +2673,18 @@ void CALL somworker (int nrows, int ncolumns, double** data, int** mask,
   }
 
   /* Randomly initialize the nodes */
-  for (ix = 0; ix < nxnodes; ix++)
-    for (iy = 0; iy < nynodes; iy++)
+  for (ix = 0; ix < nxgrid; ix++)
+  { for (iy = 0; iy < nygrid; iy++)
     { double sum = 0.;
       for (i = 0; i < ndata; i++)
       { double term = genunf(-1.,1.);
-        nodesdata[ix][iy][i] = term;
+        celldata[ix][iy][i] = term;
         sum += term * term;
       }
       sum = sqrt(sum);
-      for (i = 0; i < ndata; i++) nodesdata[ix][iy][i] /= sum;
+      for (i = 0; i < ndata; i++) celldata[ix][iy][i] /= sum;
     }
+  }
 
   /* Randomize the order in which genes or arrays will be used */
   index = (long*)malloc((size_t)nelements*sizeof(long));
@@ -3056,16 +2698,16 @@ void CALL somworker (int nrows, int ncolumns, double** data, int** mask,
     long iobject = iter % nelements;
     iobject = index[iobject];
     if (transpose==0)
-    { double closest = metric(ndata,data,nodesdata[ixbest],
-        mask,dummymask,weight,iobject,iybest,transpose);
+    { double closest = metric(ndata,data,celldata[ixbest],
+        mask,dummymask,weights,iobject,iybest,transpose);
       double radius = maxradius * (1. - ((double)iter)/((double)niter));
       double tau = inittau * (1. - ((double)iter)/((double)niter));
 
-      for (ix = 0; ix < nxnodes; ix++)
-      { for (iy = 0; iy < nynodes; iy++)
+      for (ix = 0; ix < nxgrid; ix++)
+      { for (iy = 0; iy < nygrid; iy++)
         { double distance =
-            metric (ndata,data,nodesdata[ix],
-              mask,dummymask,weight,iobject,iy,transpose);
+            metric (ndata,data,celldata[ix],
+              mask,dummymask,weights,iobject,iy,transpose);
           if (distance < closest)
           { ixbest = ix;
             iybest = iy;
@@ -3073,44 +2715,44 @@ void CALL somworker (int nrows, int ncolumns, double** data, int** mask,
           }
         }
       }
-      for (ix = 0; ix < nxnodes; ix++)
-      { for (iy = 0; iy < nynodes; iy++)
+      for (ix = 0; ix < nxgrid; ix++)
+      { for (iy = 0; iy < nygrid; iy++)
         { if (sqrt((ix-ixbest)*(ix-ixbest)+(iy-iybest)*(iy-iybest))<radius)
           { double sum = 0.;
             for (i = 0; i < ndata; i++)
-              nodesdata[ix][iy][i] +=
-                tau * (data[iobject][i]/stddata[iobject]-nodesdata[ix][iy][i]);
+              celldata[ix][iy][i] +=
+                tau * (data[iobject][i]/stddata[iobject]-celldata[ix][iy][i]);
             for (i = 0; i < ndata; i++)
-            { double term = nodesdata[ix][iy][i];
+            { double term = celldata[ix][iy][i];
               term = term * term;
               sum += term;
             }
             sum = sqrt(sum);
             if (sum>0)
-              for (i = 0; i < ndata; i++) nodesdata[ix][iy][i] /= sum;
+              for (i = 0; i < ndata; i++) celldata[ix][iy][i] /= sum;
           }
         }
       }
     }
     else
     { double closest;
-      double** nodesdatavector =
+      double** celldatavector =
         (double**)malloc((size_t)ndata*sizeof(double*));
       double radius = maxradius * (1. - ((double)iter)/((double)niter));
       double tau = inittau * (1. - ((double)iter)/((double)niter));
 
       for (i = 0; i < ndata; i++)
-        nodesdatavector[i] = &(nodesdata[ixbest][iybest][i]); 
-      closest = metric(ndata,data,nodesdatavector,
-        mask,dummymask,weight,iobject,0,transpose);
-      for (ix = 0; ix < nxnodes; ix++)
-      { for (iy = 0; iy < nynodes; iy++)
+        celldatavector[i] = &(celldata[ixbest][iybest][i]); 
+      closest = metric(ndata,data,celldatavector,
+        mask,dummymask,weights,iobject,0,transpose);
+      for (ix = 0; ix < nxgrid; ix++)
+      { for (iy = 0; iy < nygrid; iy++)
         { double distance;
           for (i = 0; i < ndata; i++)
-            nodesdatavector[i] = &(nodesdata[ixbest][iybest][i]); 
+            celldatavector[i] = &(celldata[ixbest][iybest][i]); 
           distance =
-            metric (ndata,data,nodesdatavector,
-              mask,dummymask,weight,iobject,0,transpose);
+            metric (ndata,data,celldatavector,
+              mask,dummymask,weights,iobject,0,transpose);
           if (distance < closest)
           { ixbest = ix;
             iybest = iy;
@@ -3118,29 +2760,29 @@ void CALL somworker (int nrows, int ncolumns, double** data, int** mask,
           }
         }
       }
-      free(nodesdatavector);
-      for (ix = 0; ix < nxnodes; ix++)
-      { for (iy = 0; iy < nynodes; iy++)
+      free(celldatavector);
+      for (ix = 0; ix < nxgrid; ix++)
+      { for (iy = 0; iy < nygrid; iy++)
         { if (sqrt((ix-ixbest)*(ix-ixbest)+(iy-iybest)*(iy-iybest))<radius)
           { double sum = 0.;
             for (i = 0; i < ndata; i++)
-              nodesdata[ix][iy][i] +=
-                tau * (data[i][iobject]/stddata[iobject]-nodesdata[ix][iy][i]);
+              celldata[ix][iy][i] +=
+                tau * (data[i][iobject]/stddata[iobject]-celldata[ix][iy][i]);
             for (i = 0; i < ndata; i++)
-            { double term = nodesdata[ix][iy][i];
+            { double term = celldata[ix][iy][i];
               term = term * term;
               sum += term;
             }
             sum = sqrt(sum);
             if (sum>0)
-              for (i = 0; i < ndata; i++) nodesdata[ix][iy][i] /= sum;
+              for (i = 0; i < ndata; i++) celldata[ix][iy][i] /= sum;
           }
         }
       }
     }
   }
   if (transpose==0)
-    for (i = 0; i < nynodes; i++) free(dummymask[i]);
+    for (i = 0; i < nygrid; i++) free(dummymask[i]);
   else
     for (i = 0; i < ndata; i++) free(dummymask[i]);
   free(dummymask);
@@ -3151,74 +2793,72 @@ void CALL somworker (int nrows, int ncolumns, double** data, int** mask,
 
 /* ******************************************************************* */
 
-void CALL somassign (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int transpose, int nxnodes, int nynodes,
-  double*** nodesdata, char dist, int clusterid[][2])
+static
+void somassign (int nrows, int ncolumns, double** data, int** mask,
+  const double weights[], int transpose, int nxgrid, int nygrid,
+  double*** celldata, char dist, int clusterid[][2])
 /* Collect clusterids */
-{ double (*metric) (int,double**,double**,int**,int**,double[],int,int,int);
+{ double (*metric)
+    (int,double**,double**,int**,int**, const double[],int,int,int);
   const int ndata = (transpose==0) ? ncolumns : nrows;
   int i,j;
-  int** dummymask;
 
   setmetric (dist, &metric);
 
   if (transpose==0)
-  { dummymask = (int**)malloc((size_t)nynodes*sizeof(int*));
-    for (i = 0; i < nynodes; i++)
+  { int** dummymask = (int**)malloc((size_t)nygrid*sizeof(int*));
+    for (i = 0; i < nygrid; i++)
       dummymask[i] = (int*)malloc((size_t)ncolumns*sizeof(int));
-    for (i = 0; i < nynodes; i++)
+    for (i = 0; i < nygrid; i++)
       for (j = 0; j < ncolumns; j++)
         dummymask[i][j] = 1;
+    for (i = 0; i < nrows; i++)
+    { int ixbest = 0;
+      int iybest = 0;
+      double closest = metric(ndata,data,celldata[ixbest],
+        mask,dummymask,weights,i,iybest,transpose);
+      int ix, iy;
+      for (ix = 0; ix < nxgrid; ix++)
+      { for (iy = 0; iy < nygrid; iy++)
+        { double distance =
+            metric (ndata,data,celldata[ix],
+              mask,dummymask,weights,i,iy,transpose);
+          if (distance < closest)
+          { ixbest = ix;
+            iybest = iy;
+            closest = distance;
+          }
+        }
+      }
+      clusterid[i][0] = ixbest;
+      clusterid[i][1] = iybest;
+    }
+    for (i = 0; i < nygrid; i++) free(dummymask[i]);
+    free(dummymask);
   }
   else
-  { dummymask = (int**)malloc((size_t)nrows*sizeof(int*));
+  { double** celldatavector = (double**)malloc((size_t)ndata*sizeof(double*));
+    int** dummymask = (int**)malloc((size_t)nrows*sizeof(int*));
+    int ixbest = 0;
+    int iybest = 0;
     for (i = 0; i < nrows; i++)
     { dummymask[i] = (int*)malloc(sizeof(int));
       dummymask[i][0] = 1;
     }
-  }
-
-  if (transpose==0)
-  { for (i = 0; i < nrows; i++)
-    { int ixbest = 0;
-      int iybest = 0;
-      double closest = metric(ndata,data,nodesdata[ixbest],
-        mask,dummymask,weight,i,iybest,transpose);
-      int ix, iy;
-      for (ix = 0; ix < nxnodes; ix++)
-      { for (iy = 0; iy < nynodes; iy++)
-        { double distance =
-            metric (ndata,data,nodesdata[ix],
-              mask,dummymask,weight,i,iy,transpose);
-          if (distance < closest)
-          { ixbest = ix;
-            iybest = iy;
-            closest = distance;
-          }
-        }
-      }
-      clusterid[i][0] = ixbest;
-      clusterid[i][1] = iybest;
-    }
-  }
-  else
-  { double** nodesdatavector = (double**)malloc((size_t)ndata*sizeof(double*));
-    int ixbest = 0;
-    int iybest = 0;
     for (i = 0; i < ncolumns; i++)
     { double closest;
       int ix, iy;
       for (j = 0; j < ndata; j++)
-        nodesdatavector[j] = &(nodesdata[ixbest][iybest][j]); 
-      closest = metric(ndata,data,nodesdatavector,
-        mask,dummymask,weight,i,0,transpose);
-      for (ix = 0; ix < nxnodes; ix++)
-      { for (iy = 0; iy < nynodes; iy++)
+        celldatavector[j] = &(celldata[ixbest][iybest][j]); 
+      closest = metric(ndata,data,celldatavector,
+        mask,dummymask,weights,i,0,transpose);
+      for (ix = 0; ix < nxgrid; ix++)
+      { for (iy = 0; iy < nygrid; iy++)
         { double distance;
           for(j = 0; j < ndata; j++)
-            nodesdatavector[j] = &(nodesdata[ix][iy][j]); 
-          distance = metric(ndata,data,nodesdatavector,
-            mask,dummymask,weight,i,0,transpose);
+            celldatavector[j] = &(celldata[ix][iy][j]); 
+          distance = metric(ndata,data,celldatavector,
+            mask,dummymask,weights,i,0,transpose);
           if (distance < closest)
           { ixbest = ix;
             iybest = iy;
@@ -3229,7 +2869,123 @@ void CALL somassign (int nrows, int ncolumns, double** data, int** mask,
       clusterid[i][0] = ixbest;
       clusterid[i][1] = iybest;
     }
-    free(nodesdatavector);
+    free(celldatavector);
+    for (i = 0; i < nrows; i++) free(dummymask[i]);
+    free(dummymask);
+  }
+  return;
+}
+
+/* ******************************************************************* */
+
+void CALL somcluster (int nrows, int ncolumns, double** data, int** mask,
+  const double weight[], int transpose, int nxgrid, int nygrid,
+  double inittau, int niter, char dist, double*** celldata, int clusterid[][2])
+/*
+
+Purpose
+=======
+
+The somcluster routine implements a self-organizing map (Kohonen) on a
+rectangular grid, using a given set of vectors. The distance measure to be
+used to find the similarity between genes and nodes is given by dist.
+
+Arguments
+=========
+
+nrows     (input) int
+The number of rows in the data matrix, equal to the number of genes.
+
+ncolumns  (input) int
+The number of columns in the data matrix, equal to the number of microarrays.
+
+data       (input) double array, dimension( nrows,ncolumns )
+The array containing the gene expression data.
+
+mask       (input) int array, dimension( nrows,ncolumns )
+This array shows which data values are missing. If
+mask[i][j] == 0, then data[i][j] is missing.
+
+weights    (input) double array, dimension( n )
+The weights that are used to calculate the distance. The length of this vector
+is ncolumns if genes are being clustered, or nrows if microarrays are being
+clustered.
+
+transpose  (input) int
+If transpose==0, the rows of the matrix are clustered. Otherwise, columns
+of the matrix are clustered.
+
+nxgrid    (input) int
+The number of grid cells horizontally in the rectangular topology of clusters.
+
+nygrid    (input) int
+The number of grid cells horizontally in the rectangular topology of clusters.
+
+inittau    (input) double
+The initial value of tau, representing the neighborhood function.
+
+niter      (input) int
+The number of iterations to be performed.
+
+dist       (input) char
+Defines which distance measure is used, as given by the table:
+dist=='e': Euclidean distance
+dist=='h': Harmonically summed Euclidean distance
+dist=='c': correlation
+dist=='a': absolute value of the correlation
+dist=='u': uncentered correlation
+dist=='x': absolute uncentered correlation
+dist=='s': Spearman's rank correlation
+dist=='k': Kendall's tau
+For other values of dist, the default (Euclidean distance) is used.
+
+celldata (output) double array,
+  dimension(nxgrid, nygrid, ncolumns) if genes are being clustered
+  dimension(nxgrid, nygrid, nrows) if microarrays are being clustered
+The gene expression data for each node (cell) in the 2D grid. This can be
+interpreted as the centroid for the cluster corresponding to that cell. If
+celldata is NULL, then the centroids are not returned. If celldata is not
+NULL, enough space should be allocated to store the centroid data before callingsomcluster.
+
+clusterid (output), int[nrows][2] if genes are being clustered
+                    int[ncolumns][2] if microarrays are being clustered
+For each item (gene or microarray) that is clustered, the coordinates of the
+cell in the 2D grid to which the item was assigned. If clusterid is NULL, the
+cluster assignments are not returned. If clusterid is not NULL, enough memory
+should be allocated to store the clustering information before calling
+somcluster.
+
+========================================================================
+*/
+{ const int nobjects = (transpose==0) ? nrows : ncolumns;
+  const int ndata = (transpose==0) ? ncolumns : nrows;
+  int i,j;
+  const int lcelldata = (celldata==NULL) ? 0 : 1;
+
+  if (nobjects < 2) return;
+
+  if (lcelldata==0)
+  { celldata =
+      (double***)malloc((size_t)nxgrid*nygrid*ndata*sizeof(double**));
+    for (i = 0; i < nxgrid; i++)
+      celldata[i] = (double**) malloc((size_t)nygrid*ndata*sizeof(double*));
+    for (i = 0; i < nxgrid; i++)
+      for (j = 0; j < nygrid; j++)
+        celldata[i][j] = (double*) malloc((size_t)ndata*sizeof(double));
+  }
+
+  somworker (nrows, ncolumns, data, mask, weight, transpose, nxgrid, nygrid,
+    inittau, celldata, niter, dist);
+  if (clusterid)
+    somassign (nrows, ncolumns, data, mask, weight, transpose,
+      nxgrid, nygrid, celldata, dist, clusterid);
+  if(lcelldata==0)
+  { for (i = 0; i < nxgrid; i++)
+      for (j = 0; j < nygrid; j++)
+        free(celldata[i][j]);
+    for (i = 0; i < nxgrid; i++)
+      free(celldata[i]);
+    free(celldata);
   }
   return;
 }
@@ -3321,7 +3077,8 @@ when microarrays are being clustered.
 
 ========================================================================
 */
-{ double (*metric) (int,double**,double**,int**,int**,double[],int,int,int);
+{ double (*metric)
+    (int,double**,double**,int**,int**, const double[],int,int,int);
   /* if one or both clusters are empty, return */
   if (n1 < 1 || n2 < 1) return 0;
   /* Check the indeces */

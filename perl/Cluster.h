@@ -6,6 +6,18 @@
 #include "perl.h"
 #include "XSUB.h"
 
+/* The Perl include files perl.h redefines malloc and free. Here, we need the
+ * usual malloc and free, defined in stdlib.h. So we undefine the ones in
+ * perl.h.
+ */
+
+#ifdef malloc
+#undef malloc
+#endif
+#ifdef free
+#undef free
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -47,7 +59,8 @@ int malloc_matrices( pTHX_
 	int,   int
 );
 
-void free_matrix(void **, int);
+void free_matrix_int(int**, int);
+void free_matrix_dbl(double**, int);
 
 
 /******************************************************************************/

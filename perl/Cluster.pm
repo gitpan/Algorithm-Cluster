@@ -47,7 +47,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.14';
+$VERSION     = '1.17';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -227,10 +227,19 @@ sub check_matrix_dimensions  {
 			$param->{weight} = $default->{weight};
 	} else {
 		my $weight_length    = scalar @{ $param->{weight} };
-		unless ($param->{ncols} == $weight_length) {
-			module_warn("Data matrix has $param->{ncols} columns, but weight " .
-				"array has $weight_length items.\nIgnoring the weight array.");
-			$param->{weight}      = $default->{weight}     
+		if ($param->{transpose} eq 0) {
+			unless ($param->{ncols} == $weight_length) {
+				module_warn("Data matrix has $param->{ncols} columns, but weight " .
+					"array has $weight_length items.\nIgnoring the weight array.");
+				$param->{weight}      = $default->{weight}     
+			}
+		}
+		else {
+			unless ($param->{nrows} == $weight_length) {
+				module_warn("Data matrix has $param->{nrows} rows, but weight " .
+					"array has $weight_length items.\nIgnoring the weight array.");
+				$param->{weight}      = $default->{weight}     
+			}
 		}
 	}
 
@@ -380,7 +389,7 @@ sub treecluster  {
 
 
 #-------------------------------------------------------------
-# Wrapper for the kcluster() function
+# Wrapper for the clusterdistance() function
 #
 sub clusterdistance  {
 
@@ -464,7 +473,7 @@ sub clusterdistance  {
 
 
 #-------------------------------------------------------------
-# Wrapper for the kcluster() function
+# Wrapper for the somcluster() function
 #
 sub somcluster  {
 
@@ -477,8 +486,9 @@ sub somcluster  {
 		mask      =>    '',
 		weight    =>    '',
 		transpose =>     0,
-		nxnodes   =>    10,
-		nynodes   =>    10,
+		nxgrid    =>    10,
+		nygrid    =>    10,
+		inittau   =>  0.02,
 		niter     =>   100,
 		dist      =>   'e',
 	);
@@ -508,18 +518,23 @@ sub somcluster  {
 		return;
 	}
 
-	unless($param{nxnodes}     =~ /^\d+$/ and $param{nxnodes} > 0) {
-		module_warn("Parameter 'nxnodes' must be a positive integer (got '$param{nxnodes}')");
+	unless($param{nxgrid}     =~ /^\d+$/ and $param{nxgrid} > 0) {
+		module_warn("Parameter 'nxgrid' must be a positive integer (got '$param{nxgrid}')");
 		return;
 	}
 
-	unless($param{nynodes}     =~ /^\d+$/ and $param{nynodes} > 0) {
-		module_warn("Parameter 'nynodes' must be a positive integer (got '$param{nynodes}')");
+	unless($param{nygrid}     =~ /^\d+$/ and $param{nygrid} > 0) {
+		module_warn("Parameter 'nygrid' must be a positive integer (got '$param{nygrid}')");
+		return;
+	}
+
+	unless($param{inittau}     =~ /^\d+.\d+$/ and $param{inittau} >= 0.0) {
+		module_warn("Parameter 'inittau' must be a non-negative number (got '$param{inittau}')");
 		return;
 	}
 
 	unless($param{niter}     =~ /^\d+$/ and $param{niter} > 0) {
-		module_warn("Parameter 'nxnodes' must be a positive integer (got '$param{niter}')");
+		module_warn("Parameter 'niter' must be a positive integer (got '$param{niter}')");
 		return;
 	}
 
@@ -532,7 +547,7 @@ sub somcluster  {
 	# Invoke the library function
 	#
 	return _somcluster( @param{
-		qw/nrows ncols data mask weight transpose nxnodes nynodes niter dist/
+		qw/nrows ncols data mask weight transpose nxgrid nygrid inittau niter dist/
 	} );
 }
 

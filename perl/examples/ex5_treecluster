@@ -61,7 +61,7 @@ my $mask3 =  [
 
 my $weight3 =  [ 1,1,1,1,1 ];
 
-print "--------------[PALcluster]-------\n";
+print "--------------[pairwise average linkage]-------\n";
 
 my %params = (
 
@@ -85,7 +85,7 @@ foreach(@{$result}) {
 	++$i;
 }
 
-print "--------------[PSLcluster]-------\n";
+print "--------------[pairwise single linkage]-------\n";
 $params{method} = 's';
 
 ($result, $linkdist) = Algorithm::Cluster::treecluster(%params);
@@ -96,7 +96,7 @@ foreach(@{$result}) {
 	++$i;
 }
 
-print "--------------[PCLcluster]-------\n";
+print "--------------[pairwise centroid linkage]-------\n";
 $params{method} = 'c';
 
 ($result, $linkdist) = Algorithm::Cluster::treecluster(%params);
@@ -107,7 +107,7 @@ foreach(@{$result}) {
 	++$i;
 }
 
-print "--------------[PMLcluster]-------\n";
+print "--------------[pairwise maximum linkage]-------\n";
 $params{method} = 'm';
 
 ($result, $linkdist) = Algorithm::Cluster::treecluster(%params);

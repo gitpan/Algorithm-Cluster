@@ -7,6 +7,8 @@ WriteMakefile(
 	VERSION_FROM => '../perl/Cluster.pm',
 	INC          => '-I../ranlib/src -I../ranlib/linpack',
 	SKIP         => [qw(all static static_lib dynamic dynamic_lib)],
+	C	     => ['cluster.c'],
+	H	     => ['cluster.h'],
 	OBJECT       => 'cluster.o ../ranlib/src/ranlib.o ../ranlib/src/com.o ../ranlib/linpack/linpack.o',
 	MYEXTLIB     => 'libcluster$(LIB_EXT)',
 	clean        => {'FILES' => 'libcluster$(LIBEEXT) $(OBJECT)'},

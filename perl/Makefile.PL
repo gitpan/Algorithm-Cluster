@@ -5,6 +5,9 @@ use POSIX qw(uname);
 
 WriteMakefile(
 	NAME		=> 'Algorithm::Cluster',
+	DISTNAME	=> 'Algorithm-Cluster',
+	AUTHOR		=> 'John Nolan and Michiel de Hoon',
+	ABSTRACT	=> 'Perl interface to the C Clustering Library',
 	VERSION_FROM	=> 'Cluster.pm',
 	PM		=> 
 		{

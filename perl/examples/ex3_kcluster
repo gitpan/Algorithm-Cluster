@@ -68,11 +68,11 @@ my %params = (
 	dist      =>       'e',
 );
 
-my ($clusters, $centroids, $found);
+my ($clusters, $centroids, $error, $found);
 my ($i,$j);
 
 $i=0;$j=0;
-($clusters, $centroids, $found) = kcluster(
+($clusters, $centroids, $error, $found) = kcluster(
 
 	%params,
 	data      =>    $data2,
@@ -94,7 +94,7 @@ foreach(@{$clusters}) {
 }
 
 
-($clusters, $centroids, $found) = kcluster(
+($clusters, $centroids, $error, $found) = kcluster(
 
 	%params,
 	data      =>    $data3,

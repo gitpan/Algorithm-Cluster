@@ -44,49 +44,47 @@
 #  include <windows.h>
 #endif
 
-double CALL mean(int n, double x[]);
-double CALL median (int n, double x[]);
-void CALL sort (int n, const double data[], int index[]);
-void CALL svd (double *U, double *S, double *V, int nRow, int nCol);
-void CALL initran(void);
-void CALL randomassign (int nclusters, int ngenes, int clusterid[]);
-void CALL kcluster (int nclusters, int ngenes, int ndata, double** data,
-  int** mask, double weight[], int transpose, int npass, char method, char dist,
-  int clusterid[], double** cdata, int* ifound);
-double** CALL distancematrix (int ngenes, int ndata, double** data,
-  int** mask, double* weight, char dist, int transpose);
-double CALL getscale(int nelements, double** distmatrix, char dist);
-void CALL pclworker (int ngenes, int ndata, double** data, int** mask,
-  double* weight, double** distmatrix, char dist, int transpose,
-  int result[][2], double linkdist[]);
-void CALL pclcluster (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int applyscale, int transpose, char dist, int result[][2],
-  double linkdist[]);
-void CALL pslworker (int ngenes, double** distmatrix, int result[][2],
-  double linkdist[]);
-void CALL pslcluster (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int applyscale, int transpose, char dist, int result[][2],
-  double linkdist[]);
-void CALL pmlworker (int ngenes, double** distmatrix, int result[][2],
-  double linkdist[]);
-void CALL pmlcluster (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int applyscale, int transpose, char dist, int result[][2],
-  double linkdist[]);
-void CALL palworker (int ngenes, double** distmatrix, int result[][2],
-  double linkdist[]);
-void CALL palcluster (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int applyscale, int transpose, char dist, int result[][2],
-  double linkdist[]);
-void CALL somworker (int ngenes, int ndata, double** data, int** mask,
-  double weight[], int transpose, int nxnodes, int nynodes, double inittau,
-  double*** nodesdata, int niter, char dist);
-void CALL somassign (int ngenes, int ndata, double** data, int** mask,
-  double weight[], int transpose, int nxnodes, int nynodes,
-  double*** nodesdata, char dist, int clusterid[][2]);
-void CALL somcluster (int nrows, int ncolumns, double** data, int** mask,
-  double weight[], int transpose, int nxnodes, int nynodes, int niter,
-  char dist, int clusterid[][2]);
+
+/* Chapter 2 */
 double CALL clusterdistance (int nrows, int ncolumns, double** data, int** mask,
   double weight[], int n1, int n2, int index1[], int index2[], char dist,
   char method, int transpose);
+
+/* Chapter 3 */
+void CALL initran(void);
+
+/* Chapter 4 */
+double** CALL distancematrix (int ngenes, int ndata, double** data,
+  int** mask, double* weight, char dist, int transpose);
+
+/* Chapter 5 */
+void CALL randomassign (int nclusters, int ngenes, int clusterid[]);
+void getclustermean (int nclusters, int nrows, int ncolumns,
+  double** data, int** mask, int clusterid[], double** cdata, int** cmask,
+  int transpose);
+void getclustermedian (int nclusters, int nrows, int ncolumns,
+  double** data, int** mask, int clusterid[], double** cdata, int** cmask,
+  int transpose);
+void CALL kcluster (int nclusters, int ngenes, int ndata, double** data,
+  int** mask, double weight[], int transpose, int npass, char method, char dist,
+  int clusterid[], double** cdata, double* error, int* ifound);
+
+/* Chapter 6 */
+void CALL treecluster (int nrows, int ncolumns, double** data, int** mask,
+  double weight[], int applyscale, int transpose, char dist, char method,
+  int result[][2], double linkdist[], double** distmatrix);
+
+/* Chapter 7 */
+void CALL somcluster (int nrows, int ncolumns, double** data, int** mask,
+  const double weight[], int transpose, int nxnodes, int nynodes,
+  double inittau, int niter, char dist, double*** celldata,
+  int clusterid[][2]);
+
+/* Chapter 8 */
+void CALL svd (double *U, double *S, double *V, int nRow, int nCol);
+
+/* Utility routines, currently undocumented */
+void CALL sort(int n, const double data[], int index[]);
+double CALL mean(int n, double x[]);
+double CALL median (int n, double x[]);
 #endif

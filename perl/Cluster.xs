@@ -78,7 +78,6 @@ int malloc_matrix_perl2c_dbl(pTHX_ SV * matrix_ref, double *** matrix_ptr,
 	int error_count = 0;
 
 	double ** matrix;
-	double *  row;
 
 	/* NOTE -- we will just assume that matrix_ref points to an arrayref,
 	 * and that the first item in the array is itself an arrayref.
@@ -118,7 +117,7 @@ int malloc_matrix_perl2c_dbl(pTHX_ SV * matrix_ref, double *** matrix_ptr,
 			if(warnings_enabled(aTHX))
 				Perl_warn(aTHX_ 
 					"Row %3d: Wanted array reference, but got "
-					"a bare scalar. No row to process (??).\n");
+					"a bare scalar. No row to process ??.\n");
 			--ii;
 			--nrows;
 			error_count++;
@@ -201,7 +200,6 @@ int malloc_matrix_perl2c_int (pTHX_ SV * matrix_ref, int *** matrix_ptr, int * n
 	int error_count = 0;
 
 	int ** matrix;
-	int *  row;
 
 	/* NOTE -- we will just assume that matrix_ref points to an arrayref,
 	 * and that the first item in the array is itself an arrayref.
@@ -241,7 +239,7 @@ int malloc_matrix_perl2c_int (pTHX_ SV * matrix_ref, int *** matrix_ptr, int * n
 			if(warnings_enabled(aTHX))
 				Perl_warn(aTHX_ 
 					"Row %3d: Wanted array reference, but got "
-					"a bare scalar. No row to process (??).\n");
+					"a bare scalar. No row to process ??.\n");
 			--ii;
 			--nrows;
 			error_count++;
@@ -303,7 +301,21 @@ int malloc_matrix_perl2c_int (pTHX_ SV * matrix_ref, int *** matrix_ptr, int * n
 /* -------------------------------------------------
  *
  */
-void free_matrix(void ** matrix, int nrows) {
+void free_matrix_int(int ** matrix, int nrows) {
+
+	int i;
+	for(i = 0; i < nrows; ++i ) {
+		free(matrix[i]);
+	}
+
+	free(matrix);
+}
+
+
+/* -------------------------------------------------
+ *
+ */
+void free_matrix_dbl(double ** matrix, int nrows) {
 
 	int i;
 	for(i = 0; i < nrows; ++i ) {
@@ -640,12 +652,11 @@ int malloc_matrices(pTHX_
 
 	int error_count;
 	int dummy;
-	int i;
 
 	if(SvTYPE(SvRV(mask_ref)) == SVt_PVAV) { 
 		error_count = malloc_matrix_perl2c_int(aTHX_ mask_ref, mask, &dummy, &dummy);
 		if(error_count > 0) {
-			free_matrix( (void**) *mask, nrows);
+			free_matrix_int(*mask, nrows);
 			*mask = malloc_matrix_int(aTHX_ nrows,ncols,1);
 		}
 	} else {
@@ -707,7 +718,7 @@ _readprint(input)
 
 	if(matrix != NULL) {
 		print_matrix_dbl(aTHX_ matrix,nrows,ncols);
-		free_matrix( (void**) matrix,nrows);
+		free_matrix_dbl(matrix,nrows);
 		RETVAL = 1;
 	} else {
 		RETVAL = 0;
@@ -729,7 +740,7 @@ _readformat(input)
 
 	if(matrix != NULL) {
 		RETVAL = format_matrix_dbl(aTHX_ matrix,nrows,ncols);
-		free_matrix( (void**) matrix,nrows);
+		free_matrix_dbl(matrix,nrows);
 	} else {
 		RETVAL = newSVpv("",0);
 	}
@@ -743,7 +754,7 @@ _mean(input)
 	SV * input;
 
 	PREINIT:
-	int array_length, original_array_length;
+	int array_length;
 	double * data;  /* one-dimensinal array of doubles */
 
 	CODE:
@@ -764,13 +775,14 @@ _median(input)
 	SV * input;
 
 	PREINIT:
-	int array_length, original_array_length;
+	int array_length;
 	double * data;  /* one-dimensinal array of doubles */
 
 	CODE:
 	if(SvTYPE(SvRV(input)) != SVt_PVAV) { 
 		XSRETURN_UNDEF;
 	}
+	printf("Running median\n");
 
 	malloc_row_perl2c_dbl (aTHX_ input, &data, &array_length);
 
@@ -795,13 +807,11 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,applyscale,transpose,dist,
 	char *   method;
 
 	PREINIT:
-	int i;
 	SV   *    result_ref;
 	SV   *    linkdist_ref;
 	int       (*result)[2];
 	double   * linkdist;
 	int       nweights;
-	int       error_count;
 
 	double  * weight;
 	double ** matrix;
@@ -844,21 +854,8 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,applyscale,transpose,dist,
 	/* ------------------------
 	 * Run the library function
 	 */
-	switch (method[0]) {
-	case 's':
-		pslcluster( nrows, ncols, matrix, mask, weight, applyscale, 
-			transpose, dist[0], result, linkdist);
-	case 'm':
-		pmlcluster( nrows, ncols, matrix, mask, weight, applyscale, 
-			transpose, dist[0], result, linkdist);
-	case 'c':
-		pclcluster( nrows, ncols, matrix, mask, weight, applyscale, 
-			transpose, dist[0], result, linkdist);
-	case 'a':
-		palcluster( nrows, ncols, matrix, mask, weight, applyscale, 
-			transpose, dist[0], result, linkdist);
-	}
-
+	treecluster( nrows, ncols, matrix, mask, weight, applyscale, 
+			transpose, dist[0], method[0], result, linkdist, 0);
 
 	/* Debugging statements.... */
 	/* for(i=0; i<nrows-1; ++i) { */
@@ -882,8 +879,8 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,applyscale,transpose,dist,
 	/* ------------------------
 	 * Free what we've malloc'ed 
 	 */
-	free_matrix( (void**) mask,     nrows);
-	free_matrix( (void**) matrix,   nrows);
+	free_matrix_int(mask,     nrows);
+	free_matrix_dbl(matrix,   nrows);
 	free(weight);
 	free(result);
 	free(linkdist);
@@ -905,12 +902,12 @@ _kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,met
 	char *   dist;
 
 	PREINIT:
-	SV  * centroid_ref;
-	SV  * clusterid_ref;
-	int * clusterid;
-	int   nweights;
-	int   ifound;
-	int   error_count;
+	SV  *    centroid_ref;
+	SV  *    clusterid_ref;
+	int *    clusterid;
+	int      nweights;
+	double   error;
+	int      ifound;
 
 	double  * weight;
 	double ** matrix;
@@ -948,7 +945,7 @@ _kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,met
 		nclusters, nrows, ncols, 
 		matrix, mask, weight,
 		transpose, npass, method[0], dist[0], clusterid, 
-		centroid, &ifound
+		centroid, &error, &ifound
 	);
 
 	/* ------------------------
@@ -967,10 +964,10 @@ _kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,met
 	/* ------------------------
 	 * Free what we've malloc'ed 
 	 */
-	free_matrix( (void**) centroid, nclusters);
+	free_matrix_dbl(centroid, nclusters);
 	free(clusterid);
-	free_matrix( (void**) mask,     nrows);
-	free_matrix( (void**) matrix,   nrows);
+	free_matrix_int(mask,     nrows);
+	free_matrix_dbl(matrix,   nrows);
 	free(weight);
 
 	/* Finished _kcluster() */
@@ -1056,8 +1053,8 @@ _clusterdistance(nrows,ncols,data_ref,mask_ref,weight_ref,cluster1_len,cluster2_
 	/* ------------------------
 	 * Free what we've malloc'ed 
 	 */
-	free_matrix( (void**) mask,     nrows);
-	free_matrix( (void**) matrix,   nrows);
+	free_matrix_int(mask,     nrows);
+	free_matrix_dbl(matrix,   nrows);
 	free(weight);
 	free(cluster1);
 	free(cluster2);
@@ -1070,21 +1067,24 @@ _clusterdistance(nrows,ncols,data_ref,mask_ref,weight_ref,cluster1_len,cluster2_
 
 
 void
-_somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxnodes,nynodes,niter,dist)
+_somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxgrid,nygrid,inittau,niter,dist)
 	int      nrows;
 	int      ncols;
 	SV *     data_ref;
 	SV *     mask_ref;
 	SV *     weight_ref;
 	int      transpose;
-	int      nxnodes;
-	int      nynodes;
+	int      nxgrid;
+	int      nygrid;
+	double   inittau;
 	int      niter;
 	char *   dist;
 
 	PREINIT:
-	int     (*clusterid)[2];
+	int      (*clusterid)[2];
 	SV *  clusterid_ref;
+	double*** celldata;
+	SV *  celldata_ref;
 
 	double  * weight;
 	double ** matrix;
@@ -1103,6 +1103,8 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxnodes,nynodes,n
 	 * it to a pointer-to-array anway. 
 	 */
 	clusterid  =  malloc( (size_t) 2 * (nrows) * sizeof(int) );
+	celldata  =  0;
+	/* Don't return celldata, for now at least */
 
 
 	/* ------------------------
@@ -1123,8 +1125,8 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxnodes,nynodes,n
 	somcluster( 
 		nrows, ncols, 
 		matrix, mask, weight,
-		transpose, nxnodes, nynodes, niter,
-		dist[0], clusterid
+		transpose, nxgrid, nygrid, inittau, niter,
+		dist[0], celldata, clusterid
 	);
 
 	/* ------------------------
@@ -1140,8 +1142,8 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxnodes,nynodes,n
 	/* ------------------------
 	 * Free what we've malloc'ed 
 	 */
-	free_matrix( (void**) mask,     nrows);
-	free_matrix( (void**) matrix,   nrows);
+	free_matrix_int(mask,     nrows);
+	free_matrix_dbl(matrix,   nrows);
 	free(weight);
 	free(clusterid);
 

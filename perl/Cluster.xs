@@ -644,7 +644,7 @@ SV * row_c2perl_int(pTHX_ int * row, int ncols) {
  * Print warnings so the user will know what happened. 
  */
 int malloc_matrices(pTHX_
-	SV *  weight_ref, double  ** weight, int * nweights, 
+	SV *  weight_ref, double  ** weight, int * nweights_ptr, 
 	SV *  data_ref,   double *** matrix,
 	SV *  mask_ref,   int    *** mask,
 	int   nrows,      int        ncols
@@ -652,6 +652,7 @@ int malloc_matrices(pTHX_
 
 	int error_count;
 	int dummy;
+	const int nweights = *nweights_ptr; /* The correct number of weights */
 
 	if(SvTYPE(SvRV(mask_ref)) == SVt_PVAV) { 
 		error_count = malloc_matrix_perl2c_int(aTHX_ mask_ref, mask, &dummy, &dummy);
@@ -670,17 +671,17 @@ int malloc_matrices(pTHX_
 		Perl_warn(aTHX_ "%d errors when parsing input matrix.\n", error_count);      
 
 	if(SvTYPE(SvRV(weight_ref)) == SVt_PVAV) { 
-		error_count = malloc_row_perl2c_dbl(aTHX_ weight_ref, weight, nweights);
-		if(error_count > 0 || *nweights != ncols) {
+		error_count = malloc_row_perl2c_dbl(aTHX_ weight_ref, weight, nweights_ptr);
+		if(error_count > 0 || *nweights_ptr != nweights) {
 			Perl_warn(aTHX_ "Weight array has %d items, should have %d. "
-				"%d errors detected.\n", *nweights, ncols, error_count);      
+				"%d errors detected.\n", *nweights_ptr, nweights, error_count);      
 			free(*weight);
-			*weight = malloc_row_dbl(aTHX_ ncols,1.0);
-			*nweights = ncols;
+			*weight = malloc_row_dbl(aTHX_ nweights,1.0);
+			*nweights_ptr = nweights;
 		}
 	} else {
-			*weight = malloc_row_dbl(aTHX_ ncols,1.0);
-			*nweights = ncols;
+			*weight = malloc_row_dbl(aTHX_ nweights,1.0);
+			*nweights_ptr = nweights;
 	}
 
 	return 0;
@@ -834,7 +835,9 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,applyscale,transpose,dist,
 	 * Convert data and mask matrices and the weight array
 	 * from C to Perl.  Also check for errors, and ignore the
 	 * mask or the weight array if there are any errors. 
+	 * Set nweights to the correct number of weights.
 	 */
+	nweights = (transpose==0) ? ncols : nrows;
 	malloc_matrices( aTHX_
 		weight_ref, &weight, &nweights, 
 		data_ref,   &matrix,
@@ -929,7 +932,9 @@ _kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,met
 	 * Convert data and mask matrices and the weight array
 	 * from C to Perl.  Also check for errors, and ignore the
 	 * mask or the weight array if there are any errors. 
+	 * Set nweights to the correct number of weights.
 	 */
+	nweights = (transpose==0) ? ncols : nrows;
 	malloc_matrices( aTHX_
 		weight_ref, &weight, &nweights, 
 		data_ref,   &matrix,
@@ -1020,7 +1025,9 @@ _clusterdistance(nrows,ncols,data_ref,mask_ref,weight_ref,cluster1_len,cluster2_
 	 * Convert data and mask matrices and the weight array
 	 * from C to Perl.  Also check for errors, and ignore the
 	 * mask or the weight array if there are any errors. 
+	 * Set nweights to the correct number of weights.
 	 */
+	nweights = (transpose==0) ? ncols : nrows;
 	malloc_matrices( aTHX_
 		weight_ref, &weight, &nweights, 
 		data_ref,   &matrix,
@@ -1110,7 +1117,9 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxgrid,nygrid,ini
 	 * Convert data and mask matrices and the weight array
 	 * from C to Perl.  Also check for errors, and ignore the
 	 * mask or the weight array if there are any errors. 
+	 * Set nweights to the correct number of weights.
 	 */
+	nweights = (transpose==0) ? ncols : nrows;
 	malloc_matrices( aTHX_
 		weight_ref, &weight, &nweights, 
 		data_ref,   &matrix,

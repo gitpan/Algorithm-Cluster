@@ -47,7 +47,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.17';
+$VERSION     = '1.18';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 

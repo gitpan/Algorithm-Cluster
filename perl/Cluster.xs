@@ -782,7 +782,6 @@ _median(input)
 	if(SvTYPE(SvRV(input)) != SVt_PVAV) { 
 		XSRETURN_UNDEF;
 	}
-	printf("Running median\n");
 
 	malloc_row_perl2c_dbl (aTHX_ input, &data, &array_length);
 

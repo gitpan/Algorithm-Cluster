@@ -1674,6 +1674,8 @@ found. The value of ifound is at least 1; its maximum value is npass.
   int** tcmask;
   double** tcdata;
   int ipass;
+  int* tclusterid;
+  int* mapping;
 
   if (nobjects < nclusters)
   { *ifound = 0;
@@ -1737,10 +1739,10 @@ found. The value of ifound is at least 1; its maximum value is npass.
       tcdata[i] = (double*)malloc((size_t)nclusters*sizeof(double));
   }
 
+  tclusterid = (int*)malloc((size_t)nobjects*sizeof(int));
+  mapping = (int*)malloc((size_t)nclusters*sizeof(int));
   for (ipass = 1; ipass < npass; ipass++)
-  { int* tclusterid = (int*)malloc((size_t)nobjects*sizeof(int));
-    double tssin = 0.;
-    int* mapping = (int*)malloc((size_t)nclusters*sizeof(int));
+  { double tssin = 0.;
     int same = 1;
 
     emalg(nclusters, nrows, ncolumns, data, mask, weight, transpose,
@@ -1754,8 +1756,6 @@ found. The value of ifound is at least 1; its maximum value is npass.
       tssin +=
         metric(ndata, data, tcdata, mask, tcmask, weight, i, j, transpose);
     }
-    free(mapping);
-
     if (same) (*ifound)++;
     else if (tssin < *error)
     { int j;
@@ -1774,10 +1774,12 @@ found. The value of ifound is at least 1; its maximum value is npass.
         }
       }
     }
-    free(tclusterid);
   }
 
-  /* Deallocate temporary space used for cluster centroid information */
+  /* Deallocate temporarily used space */
+  free(mapping);
+  free(tclusterid);
+
   if (transpose==0)
   { for (i = 0; i < nclusters; i++)
     { free(tcmask[i]);

@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.22';
+$VERSION     = '1.24';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -288,8 +288,8 @@ sub kcluster  {
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskeh]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskeh] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskehb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
 		return;
 	}
 
@@ -357,8 +357,8 @@ sub treecluster  {
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskeh]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskeh] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskehb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
 		return;
 	}
 
@@ -441,8 +441,8 @@ sub clusterdistance  {
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskeh]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskeh] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskehb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
 		return;
 	}
 
@@ -523,8 +523,8 @@ sub somcluster  {
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskeh]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskeh] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskehb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
 		return;
 	}
 

@@ -4,9 +4,9 @@ use Algorithm::Cluster qw/kcluster/;
 
 use strict;
 
-my $weight2 =  [ 1,1 ];
+my $weight1 =  [ 1,1 ];
 
-my $data2 =  [
+my $data1 =  [
 
 	[ 1.1, 1.2 ],
 	[ 1.4, 1.3 ],
@@ -23,7 +23,7 @@ my $data2 =  [
 	[ 5.1, 5.2 ],
 ];
 
-my $mask2 =  [
+my $mask1 =  [
 
 	[ 1, 1 ],
 	[ 1, 1 ],
@@ -41,7 +41,7 @@ my $mask2 =  [
 ];
 
 
-my $data3 =  [
+my $data2 =  [
 
         [ 1.1, 2.2, 3.3, 4.4, 5.5, ], 
         [ 3.1, 3.2, 1.3, 2.4, 1.5, ], 
@@ -49,7 +49,7 @@ my $data3 =  [
         [ 12.1, 2.0, 0.0, 5.0, 0.0, ], 
 ];
 
-my $mask3 =  [
+my $mask2 =  [
 
         [ 1, 1, 1, 1, 1, ], 
         [ 1, 1, 1, 1, 1, ], 
@@ -57,7 +57,7 @@ my $mask3 =  [
         [ 1, 1, 1, 1, 1, ], 
 ];
 
-my $weight3 =  [ 1,1,1,1,1 ];
+my $weight2 =  [ 1,1,1,1,1 ];
 
 my %params = (
 
@@ -69,9 +69,39 @@ my %params = (
 );
 
 my ($clusters, $centroids, $error, $found);
-my ($i,$j);
+my ($i);
 
-$i=0;$j=0;
+$i=0;
+($clusters, $centroids, $error, $found) = kcluster(
+
+	%params,
+	data      =>    $data1,
+	mask      =>    $mask1,
+	weight    =>  $weight1,
+);
+
+printf("\n");
+printf("Clustering first data set:\n\n");
+
+$i=0;
+foreach(@{$centroids}) {
+        printf("Cluster %d: centroid: (", $i++);
+	foreach(@{$_}) {
+		printf("%7.3f ",$_);
+	}
+        printf(")\n");
+}
+
+printf("\n");
+
+$i=0;
+foreach(@{$clusters}) {
+	printf("Gene %2d belongs to cluster %2d\n",$i++,$_);
+}
+
+printf("\n");
+printf("Clustering second data set:\n\n");
+
 ($clusters, $centroids, $error, $found) = kcluster(
 
 	%params,
@@ -80,40 +110,23 @@ $i=0;$j=0;
 	weight    =>  $weight2,
 );
 
-$i=0;$j=0;
+$i=0;
 foreach(@{$centroids}) {
-	$i++;$j=0;
+        printf("Cluster %d: centroid: (", $i++);
 	foreach(@{$_}) {
-		printf("%2d,%2d: %7.3f\n",$i,$j++,$_);
+		printf("%7.3f ",$_);
 	}
+        printf(")\n");
 }
 
-$i=0;$j=0;
+printf("\n");
+
+$i=0;
 foreach(@{$clusters}) {
-	printf("%2d: %2d\n",$i++,$_);
+	printf("Gene %2d belongs to cluster %2d\n",$i++,$_);
 }
 
-
-($clusters, $centroids, $error, $found) = kcluster(
-
-	%params,
-	data      =>    $data3,
-	mask      =>    $mask3,
-	weight    =>  $weight3,
-);
-
-$i=0;$j=0;
-foreach(@{$centroids}) {
-	$i++;$j=0;
-	foreach(@{$_}) {
-		printf("%2d,%2d: %7.3f\n",$i,$j++,$_);
-	}
-}
-
-$i=0;$j=0;
-foreach(@{$clusters}) {
-	printf("%2d: %2d\n",$i++,$_);
-}
+printf("\n");
 
 
 __END__

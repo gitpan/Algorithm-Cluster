@@ -29,3 +29,4 @@ perl/examples/ex4_somcluster
 perl/examples/ex5_treecluster
 perl/examples/ex6_clusterdistance
 data/cyano.txt
+META.yml                                 Module meta-data (added by MakeMaker)

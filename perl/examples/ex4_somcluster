@@ -78,7 +78,7 @@ $clusterid = Algorithm::Cluster::somcluster(%params);
 
 $i=0;
 foreach(@{$clusterid}) {
-	printf("%2d: %3d %3d\n",$i++,$_->[0],$_->[1]);
+	printf("Gene %2d assigned to cell (%2d,%2d)\n",$i++,$_->[0],$_->[1]);
 }
 
 

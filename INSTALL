@@ -11,8 +11,8 @@ Cluster 3.0 for Windows
 -----------------------
 
 For Cluster 3.0 for Windows, download the Windows installer from our website
-(http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/ctvsetup.exe). Run
-the installer, and you're done.
+(http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/clustersetup.exe).
+Run the installer, and you're done.
 
 If for some reason, you want to recompile Cluster 3.0 from the source, you can
 use the Makefile in the windows subdirectory. This makefile was used with
@@ -26,7 +26,7 @@ compile the resources for the GUI. To generate the help files, you will need the
 HTML Help SDK, which can be downloaded from Microsoft, as well as the GNU
 makeinfo program.
 To generate the Windows installer, type
-  make ctvsetup.exe
+  make clustersetup.exe
 For this, you will need the Inno Setup Compiler, which can be downloaded from
 http://www.jrsoftware.org.
 

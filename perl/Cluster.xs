@@ -830,95 +830,106 @@ _median(input)
 
 void
 _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,applyscale,transpose,dist,method)
-	int      nrows;
-	int      ncols;
-	SV *     data_ref;
-	SV *     mask_ref;
-	SV *     weight_ref;
-	int      applyscale;
-	int      transpose;
-	char *   dist;
-	char *   method;
+    int      nrows;
+    int      ncols;
+    SV *     data_ref;
+    SV *     mask_ref;
+    SV *     weight_ref;
+    int      applyscale;
+    int      transpose;
+    char *   dist;
+    char *   method;
 
-	PREINIT:
-	SV   *    result_ref;
-	SV   *    linkdist_ref;
-	int       (*result)[2];
-	double   * linkdist;
-	int       nweights;
+    PREINIT:
+    SV   *    result_ref;
+    SV   *    linkdist_ref;
+    int       (*result)[2];
+    double   * linkdist;
+    int       nweights;
 
-	double  * weight;
-	double ** matrix;
-	int    ** mask;
+    double  * weight;
+    double ** matrix;
+    int    ** mask;
 
-	PPCODE:
-	/* ------------------------
-	 * Don't check the parameters, because we rely on the Perl
-	 * caller to check most paramters.
-	 */
+    PPCODE:
+    /* ------------------------
+     * Don't check the parameters, because we rely on the Perl
+     * caller to check most paramters.
+     */
 
-	/* ------------------------
-	 * Malloc space for result[][2] and linkdist[]. 
-	 * Don't bother to cast the pointer for 'result', because we can't 
-	 * cast it to a pointer-to-array anyway. 
-	 */
-	if (transpose==0) {
-		nweights = ncols;
-		result   = malloc(2 * (nrows-1) * sizeof(int) );
-		linkdist = malloc(    (nrows-1) * sizeof(double) );
-	} else {
-		nweights = nrows;
-		result   = malloc(2 * (ncols-1) * sizeof(int) );
-		linkdist = malloc(    (ncols-1) * sizeof(double) );
-	}
+    /* ------------------------
+     * Malloc space for result[][2] and linkdist[]. 
+     * Don't bother to cast the pointer for 'result', because we can't 
+     * cast it to a pointer-to-array anyway. 
+     */
+    if (transpose==0) {
+	nweights = ncols;
+	result   = malloc(2 * (nrows-1) * sizeof(int) );
+	linkdist = malloc(    (nrows-1) * sizeof(double) );
+    } else {
+	nweights = nrows;
+	result   = malloc(2 * (ncols-1) * sizeof(int) );
+	linkdist = malloc(    (ncols-1) * sizeof(double) );
+    }
 
-	/* ------------------------
-	 * Convert data and mask matrices and the weight array
-	 * from C to Perl.  Also check for errors, and ignore the
-	 * mask or the weight array if there are any errors. 
-	 * Set nweights to the correct number of weights.
-	 */
-	malloc_matrices( aTHX_
-		weight_ref, &weight, &nweights, 
-		data_ref,   &matrix,
-		mask_ref,   &mask,  
-		nrows,      ncols
-	);
+    /* ------------------------
+     * Convert data and mask matrices and the weight array
+     * from C to Perl.  Also check for errors, and ignore the
+     * mask or the weight array if there are any errors. 
+     * Set nweights to the correct number of weights.
+     */
+    malloc_matrices( aTHX_
+	weight_ref, &weight, &nweights, 
+	data_ref,   &matrix,
+	mask_ref,   &mask,  
+	nrows,      ncols
+    );
 
-	/* ------------------------
-	 * Run the library function
-	 */
-	treecluster( nrows, ncols, matrix, mask, weight, applyscale, 
-			transpose, dist[0], method[0], result, linkdist, 0);
+    /* ------------------------
+     * Run the library function
+     */
+    treecluster( nrows, ncols, matrix, mask, weight, applyscale, 
+		transpose, dist[0], method[0], result, linkdist, 0);
 
-	/* ------------------------
-	 * Convert generated C matrices to Perl matrices
-	 */
-	if (transpose==0) {
-		result_ref   =  matrix_c_array_2perl_int(aTHX_ result,   nrows-1, 2); 
-		linkdist_ref =            row_c2perl_dbl(aTHX_ linkdist, nrows-1   ); 
-	} else {
-		result_ref   =  matrix_c_array_2perl_int(aTHX_ result,   ncols-1, 2); 
-		linkdist_ref =            row_c2perl_dbl(aTHX_ linkdist, ncols-1   ); 
-	}
+    /* ------------------------
+     * Check result to make sure we didn't run into memory problems
+     */
+    if(result[0][0]==0 && result[0][1]==0) {
+        /* treecluster failed due to insufficient memory */
+	if(warnings_enabled(aTHX))
+            Perl_warn(aTHX_ "treecluster failed due to insufficient memory.\n");
+    }
+    else {
 
-	/* ------------------------
-	 * Push the new Perl matrices onto the return stack
-	 */
-	XPUSHs(sv_2mortal( result_ref   ));
-	XPUSHs(sv_2mortal( linkdist_ref ));
+        /* ------------------------
+         * Convert generated C matrices to Perl matrices
+         */
+        if (transpose==0) {
+            result_ref   = matrix_c_array_2perl_int(aTHX_ result,   nrows-1, 2);
+            linkdist_ref =           row_c2perl_dbl(aTHX_ linkdist, nrows-1   ); 
+        } else {
+            result_ref   = matrix_c_array_2perl_int(aTHX_ result,   ncols-1, 2);
+            linkdist_ref =           row_c2perl_dbl(aTHX_ linkdist, ncols-1   );
+        }
 
-	/* ------------------------
-	 * Free what we've malloc'ed 
-	 */
-	free_matrix_int(mask,     nrows);
-	free_matrix_dbl(matrix,   nrows);
+        /* ------------------------
+         * Push the new Perl matrices onto the return stack
+         */
+        XPUSHs(sv_2mortal( result_ref   ));
+        XPUSHs(sv_2mortal( linkdist_ref ));
+    }
 
-	free(weight);
-	free(result);
-	free(linkdist);
+    /* ------------------------
+     * Free what we've malloc'ed 
+     */
+    free_matrix_int(mask,     nrows);
+    free_matrix_dbl(matrix,   nrows);
 
-	/* Finished _treecluster() */
+    free(weight);
+    free(result);
+    free(linkdist);
+
+    /* Finished _treecluster() */
 
 
 void

@@ -100,6 +100,10 @@ foreach(@{$clusters}) {
 }
 
 printf("\n");
+
+printf("Within-cluster sum of distances is %f\n", $error);
+
+printf("\n");
 printf("Clustering second data set:\n\n");
 
 ($clusters, $centroids, $error, $found) = kcluster(
@@ -125,6 +129,10 @@ $i=0;
 foreach(@{$clusters}) {
 	printf("Gene %2d belongs to cluster %2d\n",$i++,$_);
 }
+
+printf("\n");
+
+printf("Within-cluster sum of distances is %f\n", $error);
 
 printf("\n");
 

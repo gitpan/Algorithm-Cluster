@@ -91,4 +91,9 @@ foreach(@{$centroids}) {
 }
 
 
+#------------------
+# Print out the resulting within-cluster sum of distances.
+#
+print "------------------\n";
+printf("Within-cluster sum of distances:  %f\n\n", $error); 
 

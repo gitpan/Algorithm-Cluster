@@ -4,7 +4,7 @@ my ($last_test,$loaded);
 ######################### We start with some black magic to print on failure.
 use lib '../blib/lib','../blib/arch';
 
-BEGIN { $last_test = 34; $| = 1; print "1..$last_test\n"; }
+BEGIN { $last_test = 36; $| = 1; print "1..$last_test\n"; }
 END   { print "not ok 1  Can't load Algorithm::Cluster\n" unless $loaded; }
 
 use Algorithm::Cluster;
@@ -81,7 +81,7 @@ my $mask2 =  [
 #------------------------------------------------------
 # Tests
 # 
-my ($clusters, $centroids, $found);
+my ($clusters, $centroids, $error, $found);
 my ($i,$j);
 
 my %params = (
@@ -96,7 +96,7 @@ my %params = (
 #----------
 # test dataset 1
 #
-($clusters, $centroids, $found) = Algorithm::Cluster::kcluster(
+($clusters, $centroids, $error, $found) = Algorithm::Cluster::kcluster(
 
 	%params,
 	data      =>    $data1,
@@ -146,12 +146,15 @@ $want = '  2.000';       test q( sprintf "%7.3f", $centroids->[$clusters->[3]]->
 $want = '  0.000';       test q( sprintf "%7.3f", $centroids->[$clusters->[3]]->[2] );
 $want = '  5.000';       test q( sprintf "%7.3f", $centroids->[$clusters->[3]]->[3] );
 
+# Test the within-cluster sum of errors
+$want = '  6.500';       test q( sprintf "%7.3f", $error);
+
 
 #----------
 # test dataset 2
 #
 $i=0;$j=0;
-($clusters, $centroids, $found) = Algorithm::Cluster::kcluster(
+($clusters, $centroids, $error, $found) = Algorithm::Cluster::kcluster(
 
 	%params,
 	data      =>    $data2,
@@ -201,6 +204,8 @@ $want = '  5.550';       test q( sprintf "%7.3f", $centroids->[$clusters->[7]]->
 $want = '  3.100';       test q( sprintf "%7.3f", $centroids->[$clusters->[8]]->[0] );
 $want = '  3.300';       test q( sprintf "%7.3f", $centroids->[$clusters->[8]]->[1] );
 
+# Test the within-cluster sum of errors
+$want = '  2.023';       test q( sprintf "%7.3f", $error);
 
 
 #------------------------------------------------------

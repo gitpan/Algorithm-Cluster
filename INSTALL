@@ -19,12 +19,13 @@ use the Makefile in the windows subdirectory. This makefile was used with
 Cygwin/Mingw under Windows, and may need to be modified for other systems.
 Type
   make
-in the windows subdirectory to compile the C Clustering Library, the
-Cluster/TreeView GUI, the Windows help files and the documentation. You will
-need an ANSI C compiler such as GNU gcc, as well as the GNU windres program to
-compile the resources for the GUI. To generate the help files, you will need the
-HTML Help SDK, which can be downloaded from Microsoft, as well as the GNU
-makeinfo program.
+in the windows subdirectory to compile the C Clustering Library, the Cluster 3.0
+GUI, the Windows help files and the documentation. You will need an ANSI C
+compiler such as GNU gcc, as well as the GNU windres program to compile the
+resources for the GUI. To generate the help files, you will need the HTML Help
+SDK, which can be downloaded from Microsoft, as well as the GNU makeinfo
+program.
+
 To generate the Windows installer, type
   make clustersetup.exe
 For this, you will need the Inno Setup Compiler, which can be downloaded from
@@ -34,11 +35,13 @@ http://www.jrsoftware.org.
 Cluster 3.0 for Mac OS X
 ------------------------
 
-Cluster 3.0 can be installed most easily on Mac OS X by using the prebuilt package, available at http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster.
+Cluster 3.0 can be installed most easily on Mac OS X by using the installer for
+Mac OS X, which is available at
+http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster.
 
-If you want to recompile Cluster 3.0, it is easiest to use the Project Builder
-and Interface Builder that are part of Mac OS X. The subdirectory mac contains
-the project file that was used to compile Cluster 3.0.
+If you want to recompile Cluster 3.0, it is easiest to use Xcode and Interface
+Builder that are part of Mac OS X. The subdirectory mac contains the project
+file that was used to compile Cluster 3.0.
 
 
 Cluster 3.0 for Linux/Unix

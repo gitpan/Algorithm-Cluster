@@ -5,7 +5,6 @@ Makefile.PL
 perl/Artistic.txt
 perl/Makefile.PL
 perl/Cluster.xs
-perl/Cluster.h
 perl/Cluster.pm
 perl/typemap
 perl/t/00_basic.t

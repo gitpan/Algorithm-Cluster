@@ -35,17 +35,17 @@ my $data3 = [ 1, 2, 3, 5, 7, 11, 13, 17, $dummy_sub_ref ];
 my $data4 = [ 100, 19, 3, 1.5, 1.4, 1, 1, 1, $dummy_ref ];
 my $data5 = [ 2.0, 21, 1, 1, 1, 4.0, 5.0, 'not a number' ];
 
-$want = 13.1;       test q( Algorithm::Cluster::mean($data1)   );
-$want = 12.5;       test q( Algorithm::Cluster::mean($data2)   );
-$want = 7.375;      test q( Algorithm::Cluster::mean($data3)   );
-$want = 15.9875;    test q( Algorithm::Cluster::mean($data4)   );
-$want = 5;          test q( Algorithm::Cluster::mean($data5)   );
+$want = '13.1000';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data1));
+$want = '12.5000';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data2));
+$want = ' 7.3750';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data3));
+$want = '15.9875';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data4));
+$want = ' 5.0000';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data5));
 
-$want = 3;          test q( Algorithm::Cluster::median($data1) );
-$want = 12.5;       test q( Algorithm::Cluster::median($data2) );
-$want = 6;          test q( Algorithm::Cluster::median($data3) );
-$want = 1.45;       test q( Algorithm::Cluster::median($data4) );
-$want = 2;          test q( Algorithm::Cluster::median($data5) );
+$want = ' 3.0000';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data1));
+$want = '12.5000';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data2));
+$want = ' 6.0000';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data3));
+$want = ' 1.4500';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data4));
+$want = ' 2.0000';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data5));
 
 
 #------------------------------------------------------
@@ -58,7 +58,7 @@ sub test {
 	my $ret = eval $string;
 	$ret = 'undef' if not defined $ret;
 
-	if("$ret" =~ /^$want$/sm) {
+        if ("$ret" =~ /^$want$/sm) {
 
 		print "ok $tcounter\n";
 

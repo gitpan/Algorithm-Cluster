@@ -53,7 +53,7 @@ with Motif 2.1, such as OpenMotif (http://www.opengroup.org), which is available
 at http://www.motifzone.net.
 
 Cluster 3.0 can be installed on Unix/Linux by typing
-  ./configure --with-motif
+  ./configure
   make
   make install
 This will create the executable cluster and install it in /usr/local/bin. Some
@@ -64,7 +64,7 @@ Cluster 3.0 as a command line program
 -------------------------------------
 
 To install the command line version of Cluster 3.0, type
-  ./configure
+  ./configure --without-x
   make
   make install
 This will create the executable cluster and install it in /usr/local/bin. Some

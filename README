@@ -1,0 +1,58 @@
+Open Source Clustering Software
+===============================
+
+The Open Source Clustering Software consists of the most commonly used routines
+for clustering analysis of gene expression data. The software packages below all
+depend on the C Clustering Library, which is a library of routines for
+hierarchical (pairwise single-, complete-, maximum-, and average-linkage)
+clustering, k-means clustering, and Self-Organizing Maps on a 2D rectangular
+grid. As of version 1.04, the C Clustering Library complies with the ANSI C
+standard.
+
+Several packages are available as part of the Open Source Clustering Software:
+* Cluster 3.0 is a GUI-based program for Windows, based on Michael Eisen's
+  Cluster/TreeView code. Cluster 3.0 was written for Microsoft Windows, and
+  subsequently ported to Mac OS X (Cocoa) and Unix/Linux.
+* Pycluster is an extension module to the scripting language Python.
+* Algorithm::Cluster is an extension module to the scripting language Perl.
+* The routines in the C Clustering Library can also be used directly by calling
+  them from other C programs.
+
+
+INSTALLATION
+============
+
+See the INSTALL file in this directory.
+
+
+VIEWING CLUSTERING RESULTS
+==========================
+
+We recommend using Java TreeView for visualizing clustering results.
+Java TreeView is a Java version of Michael Eisen's Treeview program with
+extended capabilities. In particular, it is possible to visualize k-means
+clustering results in addition to hierarchical clustering results.
+
+Java TreeView was written by Alok Saldanha at Stanford University; it can be
+downloaded at http://genome-www.stanford.edu/~alok/TreeView. Java TreeView can
+be started from Cluster 3.0 by pressing the 'Launch JavaTreeView' button. See
+the installation instructions in INSTALL.
+
+
+MANUAL
+======
+
+The routines in the C Clustering Library is described in the manual
+(cluster.pdf). This manual also describes how to use the routines from Python.
+Cluster 3.0 has a separate manual (ctv.pdf). Both of these manuals can be found
+in the doc subdirectory. They can also be downloaded from our website:
+http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/ctv.pdf.
+http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/cluster.pdf.
+
+
+CONTACT
+=======
+
+Michiel de Hoon, University of Tokyo, Human Genome Center
+mdehoon@ims.u-tokyo.ac.jp
+

@@ -1,0 +1,119 @@
+#!/usr/perl/perl580/bin/perl -w
+
+use Algorithm::Cluster qw/kcluster/;
+
+use strict;
+
+my $weight2 =  [ 1,1 ];
+
+my $data2 =  [
+
+	[ 1.1, 1.2 ],
+	[ 1.4, 1.3 ],
+	[ 1.1, 1.5 ],
+	[ 2.0, 1.5 ],
+	[ 1.7, 1.9 ],
+	[ 1.7, 1.9 ],
+	[ 5.7, 5.9 ],
+	[ 5.7, 5.9 ],
+	[ 3.1, 3.3 ],
+	[ 5.4, 5.3 ],
+	[ 5.1, 5.5 ],
+	[ 5.0, 5.5 ],
+	[ 5.1, 5.2 ],
+];
+
+my $mask2 =  [
+
+	[ 1, 1 ],
+	[ 1, 1 ],
+	[ 1, 1 ],
+	[ 1, 1 ],
+	[ 1, 1 ],
+	[ 1, 1 ],
+	[ 1, 1 ],
+	[ 1, 1 ],
+	[ 1, 1 ],
+	[ 1, 1 ],
+	[ 1, 1 ],
+	[ 1, 1 ],
+	[ 1, 1 ],
+];
+
+
+my $data3 =  [
+
+        [ 1.1, 2.2, 3.3, 4.4, 5.5, ], 
+        [ 3.1, 3.2, 1.3, 2.4, 1.5, ], 
+        [ 4.1, 2.2, 0.3, 5.4, 0.5, ], 
+        [ 12.1, 2.0, 0.0, 5.0, 0.0, ], 
+];
+
+my $mask3 =  [
+
+        [ 1, 1, 1, 1, 1, ], 
+        [ 1, 1, 1, 1, 1, ], 
+        [ 1, 1, 1, 1, 1, ], 
+        [ 1, 1, 1, 1, 1, ], 
+];
+
+my $weight3 =  [ 1,1,1,1,1 ];
+
+my %params = (
+
+	nclusters =>         3,
+	transpose =>         0,
+	npass     =>       100,
+	method    =>       'a',
+	dist      =>       'e',
+);
+
+my ($clusters, $centroids, $found);
+my ($i,$j);
+
+$i=0;$j=0;
+($clusters, $centroids, $found) = kcluster(
+
+	%params,
+	data      =>    $data2,
+	mask      =>    $mask2,
+	weight    =>  $weight2,
+);
+
+$i=0;$j=0;
+foreach(@{$centroids}) {
+	$i++;$j=0;
+	foreach(@{$_}) {
+		printf("%2d,%2d: %7.3f\n",$i,$j++,$_);
+	}
+}
+
+$i=0;$j=0;
+foreach(@{$clusters}) {
+	printf("%2d: %2d\n",$i++,$_);
+}
+
+
+($clusters, $centroids, $found) = kcluster(
+
+	%params,
+	data      =>    $data3,
+	mask      =>    $mask3,
+	weight    =>  $weight3,
+);
+
+$i=0;$j=0;
+foreach(@{$centroids}) {
+	$i++;$j=0;
+	foreach(@{$_}) {
+		printf("%2d,%2d: %7.3f\n",$i,$j++,$_);
+	}
+}
+
+$i=0;$j=0;
+foreach(@{$clusters}) {
+	printf("%2d: %2d\n",$i++,$_);
+}
+
+
+__END__

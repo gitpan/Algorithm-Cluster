@@ -7,23 +7,24 @@
  * 4-6-1 Shirokanedai, Minato-ku, Tokyo 108-8639, Japan.
  * Contact: mdehoon@ims.u-tokyo.ac.jp
  * 
- * This entire notice should be included in all copies of any software
- * which is or includes a copy or modification of this software and in
- * all copies of the supporting documentation for such software.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Lesser General Public
- * License as published by the Free Software Foundation; either
- * version 2.1 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Lesser General Public License for more details.
- *
- * You should have received a copy of the GNU Lesser General Public
- * License along with this library; if not, write to the Free Software
- * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ * Permission to use, copy, modify, and distribute this software and its
+ * documentation with or without modifications and for any purpose and
+ * without fee is hereby granted, provided that any copyright notices
+ * appear in all copies and that both those copyright notices and this
+ * permission notice appear in supporting documentation, and that the
+ * names of the contributors or copyright holders not be used in
+ * advertising or publicity pertaining to distribution of the software
+ * without specific prior permission.
+ * 
+ * THE CONTRIBUTORS AND COPYRIGHT HOLDERS OF THIS SOFTWARE DISCLAIM ALL
+ * WARRANTIES WITH REGARD TO THIS SOFTWARE, INCLUDING ALL IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS, IN NO EVENT SHALL THE
+ * CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY SPECIAL, INDIRECT
+ * OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS
+ * OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE
+ * OR PERFORMANCE OF THIS SOFTWARE.
+ * 
  */
 
 #ifndef C_CLUSTERING_LIB
@@ -81,7 +82,7 @@ void CALL somcluster (int nrows, int ncolumns, double** data, int** mask,
   int clusterid[][2]);
 
 /* Chapter 8 */
-void CALL svd (double *U, double *S, double *V, int nRow, int nCol);
+void CALL svd(int m, int n, double** u, double w[], double** v, int* ierr);
 
 /* Utility routines, currently undocumented */
 void CALL sort(int n, const double data[], int index[]);

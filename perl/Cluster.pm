@@ -20,23 +20,8 @@ package Algorithm::Cluster;
 # 4-6-1 Shirokanedai, Minato-ku, Tokyo 108-8639, Japan.
 # Contact: mdehoon@ims.u-tokyo.ac.jp
 # 
-# This entire notice should be included in all copies of any software
-# which is or includes a copy or modification of this software and in
-# all copies of the supporting documentation for such software.
-# 
-# This library is free software; you can redistribute it and/or
-# modify it under the terms of the GNU Lesser General Public
-# License as published by the Free Software Foundation; either
-# version 2.1 of the License, or (at your option) any later version.
-# 
-# This library is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-# Lesser General Public License for more details.
-# 
-# You should have received a copy of the GNU Lesser General Public
-# License along with this library; if not, write to the Free Software
-# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# The Algorithm::Cluster module for Perl was released under the same terms
+# as the Perl Artistic license. See the file artistic.txt for details.
 #---------------------------------------------------------------------------
 
 
@@ -47,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.19';
+$VERSION     = '1.21';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -303,8 +288,8 @@ sub kcluster  {
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskeh]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskeh] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskehb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
 		return;
 	}
 
@@ -372,8 +357,8 @@ sub treecluster  {
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskeh]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskeh] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskehb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
 		return;
 	}
 
@@ -456,8 +441,8 @@ sub clusterdistance  {
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskeh]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskeh] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskehb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
 		return;
 	}
 
@@ -538,8 +523,8 @@ sub somcluster  {
 		return;
 	}
 
-	unless($param{dist}      =~ /^[cauxskeh]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskeh] (got '$param{dist}')");
+	unless($param{dist}      =~ /^[cauxskehb]$/) {
+		module_warn("Parameter 'dist' must be one of: [cauxskehb] (got '$param{dist}')");
 		return;
 	}
 

@@ -1,6 +1,7 @@
 MANIFEST
 README
 Makefile.PL
+perl/Artistic.txt
 perl/Makefile.PL
 perl/Cluster.xs
 perl/Cluster.h

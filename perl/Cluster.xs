@@ -142,20 +142,17 @@ extract_double_from_scalar(pTHX_ SV * mysv, double * number) {
  * Convert a Perl 2D matrix into a 2D matrix of C doubles.
  * NOTE: on errors this function returns a value greater than zero.
  */
-static int
-malloc_matrix_perl2c_dbl(pTHX_ SV * matrix_ref, double *** matrix_ptr, 
-	int * nrows_ptr, int * ncols_ptr, int ** mask) {
+static double**
+parse_data(pTHX_ SV * matrix_ref) {
 
 	AV * matrix_av;
 	SV * row_ref;
 	AV * row_av;
 	SV * cell;
 
-	int type, i,ii,j, perl_nrows, nrows, ncols;
-	int ncols_in_this_row;
-	int error_count = 0;
+	int type, i, j, nrows, ncols, n;
 
-	double ** matrix;
+	double** matrix;
 
 	/* NOTE -- we will just assume that matrix_ref points to an arrayref,
 	 * and that the first item in the array is itself an arrayref.
@@ -165,28 +162,24 @@ malloc_matrix_perl2c_dbl(pTHX_ SV * matrix_ref, double *** matrix_ptr,
 	 * rows will be decremented, if we skip any (invalid) Perl rows.
 	 */
 	matrix_av  = (AV *) SvRV(matrix_ref);
-	perl_nrows = (int) av_len(matrix_av) + 1;
-	nrows      = perl_nrows;
+	nrows = (int) av_len(matrix_av) + 1;
 
-	if(perl_nrows <= 0) {
-		matrix_ptr = NULL;
-		return 1;  /* Caller must handle this case!! */
+	if(nrows <= 0) {
+		return NULL;  /* Caller must handle this case!! */
 	}
 
 	row_ref  = *(av_fetch(matrix_av, (I32) 0, 0)); 
 	row_av   = (AV *) SvRV(row_ref);
 	ncols    = (int) av_len(row_av) + 1;
 
-	matrix   = malloc(nrows * sizeof(double *) );
+	matrix   = malloc(nrows*sizeof(double*));
 
 
 	/* ------------------------------------------------------------ 
-	 * Loop once for each row in the Perl matrix, and convert it to C doubles. 
-	 * Variable i  increments with each row in the Perl matrix. 
-	 * Variable ii increments with each row in the C matrix. 
-	 * Some Perl rows may be skipped, so variable ii will sometimes not increment.
+	 * Loop once for each row in the Perl matrix, and convert it to
+         * C doubles. 
 	 */
-	for (i=0, ii=0; i < perl_nrows; ++i,++ii) { 
+	for (i=0; i < nrows; i++) { 
 
 		row_ref = *(av_fetch(matrix_av, (I32) i, 0)); 
 
@@ -194,71 +187,68 @@ malloc_matrix_perl2c_dbl(pTHX_ SV * matrix_ref, double *** matrix_ptr,
 
 			if(warnings_enabled(aTHX))
 				Perl_warn(aTHX_ 
-					"Row %3d: Wanted array reference, but got "
-					"a bare scalar. No row to process ??.\n");
-			--ii;
-			--nrows;
-			error_count++;
-			continue;
+					"Row %d: Wanted array reference, but "
+					"got a scalar. No row to process?\n");
+			break;
 		}
 
-		type = SvTYPE(SvRV(row_ref)); 
+		row_av = (AV *) SvRV(row_ref);
+		type = SvTYPE(row_av); 
 	
 		/* Handle unexpected cases */
 		if(type != SVt_PVAV ) {
 
-		 	/* Handle the case where this reference doesn't point to an array at all. */
+		 	/* Reference doesn't point to an array at all. */
 			if(warnings_enabled(aTHX))
 				Perl_warn(aTHX_ 
-					"Row %3d: Wanted array reference, but got "
-					"a reference to something else (%d)\n", i, type);
-			ncols_in_this_row = 0;
+					"Row %d: Wanted array reference, but got "
+					"a reference to something else (%d)\n",
+					i, type);
+			break;
 
-		} else {
-			/* Handle the case where the matrix is (unexpectedly) ragged, 
-			 * by noting the number of items in this row specifically. */
-			row_av = (AV *) SvRV(row_ref);
-			ncols_in_this_row = (int) av_len(row_av) + 1;
 		}
 
-		matrix[ii] = malloc(ncols * sizeof(double) );
+		n = (int) av_len(row_av) + 1;
+		if (n != ncols) {
+			/* All rows in the matrix should have the same
+			 * number of columns. */
+			if(warnings_enabled(aTHX))
+				Perl_warn(aTHX_ 
+					"Row %d: Contains %d columns "
+					"(expected %d)\n", i, n, ncols);
+			break;
+		}
+
+		matrix[i] = malloc(ncols*sizeof(double));
 
 		/* Loop once for each cell in the row. */
-		for (j=0; j < ncols; ++j) { 
-			if(j>=ncols_in_this_row) {
-				/* Handle the case where the matrix is (unexpectedly) ragged */
-				matrix[ii][j] = 0.0;
-				if(mask != NULL) mask[ii][j] = 0;
-				error_count++;
+		for (j=0; j < ncols; j++) { 
+		
+			double num;
+			cell = *(av_fetch(row_av, (I32) j, 0)); 
+			if(extract_double_from_scalar(aTHX_ cell,&num) <= 0) {	
 				if(warnings_enabled(aTHX))
 					Perl_warn(aTHX_ 
-						"Row %3d col %3d: Row is too short.  Inserting zero into cell.\n", ii, j);
-			} else {
-				double num;
-				cell = *(av_fetch(row_av, (I32) j, 0)); 
-				if(extract_double_from_scalar(aTHX_ cell,&num) > 0) {	
-					matrix[ii][j] = num;
-				} else {
-					if(warnings_enabled(aTHX))
-						Perl_warn(aTHX_ 
-							"Row %3d col %3d: Value is not a number.  Inserting zero into cell.\n", ii, j);
-					matrix[ii][j] = 0.0;
-					if(mask != NULL) mask[ii][j] = 0;
-					error_count++;
-				}
+						"Row %d col %d: Value is not "
+                                                "a number.\n", i, j);
+				free(matrix[i]); /* not included below */
+				break;
 			}
+			matrix[i][j] = num;
 
 		} /* End for (j=0; j < ncols; j++) */
+		if (j < ncols) break;
 
-	} /* End for (i=0, ii=0; i < nrows; i++) */
+	} /* End for (i=0; i < nrows; i++) */
 
+	if (i < nrows) { /* encountered a break */
+		nrows = i;
+		for (i = 0; i < nrows; i++) free(matrix[i]);
+		free(matrix);
+		matrix = NULL;
+	}
 
-	/* Return pointer and dimensions to the caller */
-	*matrix_ptr  = matrix;
-	*nrows_ptr   = nrows;
-	*ncols_ptr   = ncols;
-
-	return(error_count);
+	return matrix;
 }
 
 
@@ -266,19 +256,17 @@ malloc_matrix_perl2c_dbl(pTHX_ SV * matrix_ref, double *** matrix_ptr,
  * Convert a Perl 2D matrix into a 2D matrix of C ints.
  * On errors this function returns a value greater than zero.
  */
-static int
-malloc_matrix_perl2c_int (pTHX_ SV * matrix_ref, int *** matrix_ptr, int * nrows_ptr, int * ncols_ptr) {
+static int**
+parse_mask(pTHX_ SV * matrix_ref) {
 
 	AV * matrix_av;
 	SV * row_ref;
 	AV * row_av;
 	SV * cell;
 
-	int type, i,ii,j, perl_nrows, nrows, ncols;
-	int ncols_in_this_row;
-	int error_count = 0;
+	int type, i, j, nrows, ncols, n;
 
-	int ** matrix;
+	int** matrix;
 
 	/* NOTE -- we will just assume that matrix_ref points to an arrayref,
 	 * and that the first item in the array is itself an arrayref.
@@ -288,12 +276,10 @@ malloc_matrix_perl2c_int (pTHX_ SV * matrix_ref, int *** matrix_ptr, int * nrows
 	 * rows will be decremented, if we skip any (invalid) Perl rows.
 	 */
 	matrix_av = (AV *) SvRV(matrix_ref);
-	perl_nrows = (int) av_len(matrix_av) + 1;
-	nrows      = perl_nrows;
+	nrows = (int) av_len(matrix_av) + 1;
 
-	if(perl_nrows <= 0) {
-		matrix_ptr = NULL;
-		return 1;  /* Caller must handle this case!! */
+	if(nrows <= 0) {
+		return NULL;  /* Caller must handle this case!! */
 	}
 
 	row_ref   = *(av_fetch(matrix_av, (I32) 0, 0)); 
@@ -305,11 +291,8 @@ malloc_matrix_perl2c_int (pTHX_ SV * matrix_ref, int *** matrix_ptr, int * nrows
 
 	/* ------------------------------------------------------------ 
 	 * Loop once for each row in the Perl matrix, and convert it to C ints. 
-	 * Variable i  increments with each row in the Perl matrix. 
-	 * Variable ii increments with each row in the C matrix. 
-	 * Some Perl rows may be skipped, so variable ii will sometimes not increment.
 	 */
-	for (i=0, ii=0; i < perl_nrows; ++i,++ii) { 
+	for (i=0; i < nrows; i++) { 
 
 		row_ref = *(av_fetch(matrix_av, (I32) i, 0)); 
 
@@ -317,63 +300,67 @@ malloc_matrix_perl2c_int (pTHX_ SV * matrix_ref, int *** matrix_ptr, int * nrows
 
 			if(warnings_enabled(aTHX))
 				Perl_warn(aTHX_ 
-					"Row %3d: Wanted array reference, but got "
-					"a bare scalar. No row to process ??.\n");
-			--ii;
-			--nrows;
-			error_count++;
-			continue;
+					"Row %d: Wanted array reference, but "
+					"got a scalar. No row to process?\n");
+			break;
 		}
 
-		type = SvTYPE(SvRV(row_ref)); 
+		row_av = (AV *) SvRV(row_ref);
+		type = SvTYPE(row_av); 
 	
 		/* Handle unexpected cases */
 		if(type != SVt_PVAV ) {
 
-		 	/* Handle the case where this reference doesn't point to an array at all. */
+		 	/* Reference doesn't point to an array at all. */
 			if(warnings_enabled(aTHX))
 				Perl_warn(aTHX_ 
-					"Row %3d: Wanted array reference, but got "
-					"a reference to something else (%d)\n", i, type);
-			ncols_in_this_row = 0;
+					"Row %d: Wanted array reference, but got "
+					"a reference to something else (%d)\n",
+					i, type);
+			break;
 
-		} else {
-			/* Handle the case where the matrix is (unexpectedly) ragged. */
-			row_av = (AV *) SvRV(row_ref);
-			ncols_in_this_row = (int) av_len(row_av) + 1;
 		}
 
-		matrix[ii] = malloc(ncols * sizeof(int) );
+		n = (int) av_len(row_av) + 1;
+		if (n != ncols) {
+			/* All rows in the matrix should have the same
+			 * number of columns. */
+			if(warnings_enabled(aTHX))
+				Perl_warn(aTHX_ 
+					"Row %d: Contains %d columns "
+					"(expected %d)\n", i, n, ncols);
+			break;
+		}
+
+		matrix[i] = malloc(ncols * sizeof(int) );
 
 		/* Loop once for each cell in the row. */
 		for (j=0; j < ncols; ++j) { 
-			if(j>=ncols_in_this_row) {
-				matrix[ii][j] = 0;
-				error_count++;
-			} else {
-				double num;
-				cell = *(av_fetch(row_av, (I32) j, 0)); 
-				if(extract_double_from_scalar(aTHX_ cell,&num) > 0) {	
-					matrix[ii][j] = (int) num;
-				} else {
-					if(warnings_enabled(aTHX))
-						Perl_warn(aTHX_ "Row %3d col %3d is not a number, setting cell to 0\n", i, j);
-					matrix[ii][j] = 0;
-					error_count++;
-				}
+			double num;
+			cell = *(av_fetch(row_av, (I32) j, 0)); 
+			if(extract_double_from_scalar(aTHX_ cell,&num) <= 0) {	
+				if(warnings_enabled(aTHX))
+					Perl_warn(aTHX_
+						"Row %d col %d: Value is not "
+						"a number.\n", i, j);
+				free(matrix[i]); /* not included below */
+				break;
 			}
+			matrix[i][j] = (int) num;
 
 		} /* End for (j=0; j < ncols; j++) */
+		if (j < ncols) break;
 
-	} /* End for (i=0, ii=0; i < nrows; i++) */
+	} /* End for (i=0; i < nrows; i++) */
 
+	if (i < nrows) { /* break statement encountered */
+		nrows = i;
+		for (i = 0; i < nrows; i++) free(matrix[i]);
+		free(matrix);
+		matrix = NULL;
+	}
 
-	/* Return pointer and dimensions to the caller */
-	*matrix_ptr  = matrix;
-	*nrows_ptr   = nrows;
-	*ncols_ptr   = ncols;
-
-	return(error_count);
+	return matrix;
 }
 
 
@@ -419,53 +406,6 @@ free_ragged_matrix_dbl(double ** matrix, int nrows) {
 	}
 
 	free(matrix);
-}
-
-
-/* -------------------------------------------------
- * For debugging
- */
-static void
-print_row_int(pTHX_ int * row, int columns) {
-
-	int i;
-
-	for (i = 0; i < columns; i++) { 
-		printf(" %3d", row[i]);
-	}
-	printf("\n");
-}
-
-/* -------------------------------------------------
- * For debugging
- */
-static void
-print_row_dbl(pTHX_ double * row, int columns) {
-
-	int i;
-
-	for (i = 0; i < columns; i++) { 
-		printf(" %7.3f", row[i]);
-	}
-	printf("\n");
-}
-
-
-/* -------------------------------------------------
- * For debugging
- */
-static void
-print_matrix_int(pTHX_ int ** matrix, int rows, int columns) {
-
-	int i,j;
-
-	for (i = 0; i < rows; i++) { 
-		printf("Row %3d:  ",i);
-		for (j = 0; j < columns; j++) { 
-			printf(" %3d", matrix[i][j]);
-		}
-		printf("\n");
-	}
 }
 
 /* -------------------------------------------------
@@ -548,45 +488,41 @@ malloc_row_perl2c_dbl (pTHX_ SV * input, int* np) {
  * If there are errors, then the C array will be SHORTER than
  * the original Perl array.
  */
-static int
-malloc_row_perl2c_int (pTHX_ SV * input, int ** array_ptr, int * array_length_ptr) {
+static int*
+malloc_row_perl2c_int (pTHX_ SV * input) {
 
-	AV * array;
-	int i,ii;
-	int array_length,original_array_length;
-	int * data;
-	int error_count = 0;
+	int i;
 
-	array                 = (AV *) SvRV(input);
-	array_length          = (int) av_len(array) + 1;
-	original_array_length = array_length;
-	data                  = malloc(original_array_length * sizeof(int)); 
+	AV* array = (AV *) SvRV(input);
+	const int n = (int) av_len(array) + 1;
+	int* data = malloc(n*sizeof(int)); 
 
-	/* Loop once for each item in the Perl array, and convert it to a C double. 
-	 * Variable i  increments with each item in the Perl array. 
-	 * Variable ii increments with each item in the C array. 
-	 * Some Perl items may be skipped, so variable ii will sometimes not increment.
+	if(!data) return NULL;
+
+	/* Loop once for each item in the Perl array,
+         * and convert it to a C double. 
 	 */
-	for (i=0,ii=0; i < original_array_length; ++i,++ii) {
+	for (i=0; i < n; i++) {
 		double num;
 		SV * mysv = *(av_fetch(array, (I32) i, (I32) 0));
 		if(extract_double_from_scalar(aTHX_ mysv,&num) > 0) {	
-			data[ii] = (int) num;
+			data[i] = (int) num;
 		} else {
 			/* Skip any items which are not numeric */
-    		if (warnings_enabled(aTHX))
+    			if (warnings_enabled(aTHX))
 				Perl_warn(aTHX_ 
-					"Warning when parsing array: item %d is not a number, skipping\n", i);      
-			data[ii] = 0;
-			--ii;
-			--array_length;  
-			error_count++;
+					"Error when parsing array: item %d is"
+					" not a number, skipping\n", i);      
+			break;
 		}
 	}
-	*array_ptr        = data;
-	*array_length_ptr = array_length;
 
-	return(error_count);
+	if (i < n) { /* encountered the break statement */
+		free(data);
+		return NULL;
+	}
+
+	return data;
 }
 
 /* -------------------------------------------------
@@ -702,24 +638,21 @@ malloc_matrices(pTHX_
 	int   nrows,      int        ncols
 ) {
 
-	int error_count;
-	int dummy;
-
 	if(SvTYPE(SvRV(mask_ref)) == SVt_PVAV) { 
-		error_count = malloc_matrix_perl2c_int(aTHX_ mask_ref, mask, &dummy, &dummy);
-		if(error_count > 0) {
-			free_matrix_int(*mask, nrows);
-			*mask = malloc_matrix_int(aTHX_ nrows,ncols,1);
-		}
+		*mask = parse_mask(aTHX_ mask_ref);
+		if(*mask==NULL) return 0;
 	} else {
-			*mask = malloc_matrix_int(aTHX_ nrows,ncols,1);
+		*mask = malloc_matrix_int(aTHX_ nrows,ncols,1);
 	}
 
 	/* We don't check data_ref because we expect the caller to check it 
 	 */
-	error_count = malloc_matrix_perl2c_dbl(aTHX_ data_ref, matrix, &dummy, &dummy, *mask);
-	if (error_count > 0 && warnings_enabled(aTHX)) 
-		Perl_warn(aTHX_ "%d errors when parsing input matrix.\n", error_count);      
+	*matrix = parse_data(aTHX_ data_ref);
+	if(*matrix==NULL) {
+		if(warnings_enabled(aTHX)) 
+			Perl_warn(aTHX_ "Error parsing data matrix.\n");      
+		return 0;
+	}
 
 	if(SvTYPE(SvRV(weight_ref)) == SVt_PVAV) { 
 		*weight = malloc_row_perl2c_dbl(aTHX_ weight_ref, NULL);
@@ -734,14 +667,13 @@ malloc_matrices(pTHX_
 	return 1;
 }
 
-static int
-malloc_distancematrix(pTHX_ SV* matrix_ref, double*** matrix_ptr, int nobjects)
+static double**
+parse_distance(pTHX_ SV* matrix_ref, int nobjects)
 {
 	int i,j;
 
-	int error_count = 0;
 	AV* matrix_av  = (AV *) SvRV(matrix_ref);
-	double** matrix   = malloc(nobjects * sizeof(double *) );
+	double** matrix = malloc(nobjects*sizeof(double*));
 
 	matrix[0] = NULL;
 	for (i=1; i < nobjects; i++) { 
@@ -757,16 +689,21 @@ malloc_distancematrix(pTHX_ SV* matrix_ref, double*** matrix_ptr, int nobjects)
 			} else {
 				if(warnings_enabled(aTHX))
 					Perl_warn(aTHX_ 
-						"Row %3d col %3d: Value is not a number.  Inserting zero into cell.\n", i, j);
-				matrix[i][j] = 0.0;
-				error_count++;
+						"Row %d col %d: Value is not "
+                                                "a number.\n", i, j);
+				break;
 			}
 		}
 	}
 
-	/* Return pointer and dimensions to the caller */
-	*matrix_ptr  = matrix;
-	return(error_count);
+	if (i < nobjects) {
+		nobjects = i+1;
+		for (i = 1; i < nobjects; i++) free(matrix[i]);
+		free(matrix);
+		matrix = NULL;
+	}
+
+	return matrix;
 }
 
 /******************************************************************************/
@@ -793,13 +730,17 @@ int
 _readprint(input)
 	SV *      input;
 	PREINIT:
-	int       nrows, ncols;
 	double ** matrix;  /* two-dimensional matrix of doubles */
 
 	CODE:
-	malloc_matrix_perl2c_dbl(aTHX_ input, &matrix, &nrows, &ncols, NULL);
+	matrix = parse_data(aTHX_ input);
 
 	if(matrix != NULL) {
+		AV* matrix_av = (AV *) SvRV(input);
+		SV * row_ref = *(av_fetch(matrix_av, (I32) 0, 0));
+		AV * row_av = (AV *) SvRV(row_ref);
+		const int nrows = (int) av_len(matrix_av) + 1;
+        	const int ncols = (int) av_len(row_av) + 1;
 		print_matrix_dbl(aTHX_ matrix,nrows,ncols);
 		free_matrix_dbl(matrix,nrows);
 		RETVAL = 1;
@@ -815,13 +756,17 @@ SV *
 _readformat(input)
 	SV *      input;
 	PREINIT:
-	int       nrows, ncols;
 	double ** matrix;  /* two-dimensional matrix of doubles */
 
 	CODE:
-	malloc_matrix_perl2c_dbl(aTHX_ input, &matrix, &nrows, &ncols, NULL);
+	matrix = parse_data(aTHX_ input);
 
 	if(matrix != NULL) {
+                AV* matrix_av = (AV *) SvRV(input);
+                SV * row_ref = *(av_fetch(matrix_av, (I32) 0, 0));
+                AV * row_av = (AV *) SvRV(row_ref);
+                const int nrows = (int) av_len(matrix_av) + 1;
+                const int ncols = (int) av_len(row_av) + 1;
 		RETVAL = format_matrix_dbl(aTHX_ matrix,nrows,ncols);
 		free_matrix_dbl(matrix,nrows);
 	} else {
@@ -1043,8 +988,7 @@ _kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,met
 
 	if (npass==0) {
 		int       i;
-		int       dummy;
-		malloc_row_perl2c_int(aTHX_ initialid_ref, &initialid, &dummy);
+		initialid = malloc_row_perl2c_int(aTHX_ initialid_ref);
 		for (i = 0; i < nobjects; i++) clusterid[i] = initialid[i];
 	}
 
@@ -1118,10 +1062,7 @@ _kmedoids(nclusters,nobjects,distancematrix_ref,npass,initialid_ref)
 	 * from C to Perl.  Also check for errors, and ignore the
 	 * mask or the weight array if there are any errors. 
 	 */
-	malloc_distancematrix( aTHX_ distancematrix_ref,
-				&distancematrix,
-				nobjects
-	);
+	distancematrix = parse_distance(aTHX_ distancematrix_ref, nobjects);
 
 	/* ------------------------
 	 * Copy initialid to clusterid, if needed
@@ -1129,8 +1070,7 @@ _kmedoids(nclusters,nobjects,distancematrix_ref,npass,initialid_ref)
 
 	if (npass==0) {
 		int       i;
-		int       dummy;
-		malloc_row_perl2c_int(aTHX_ initialid_ref, &initialid, &dummy);
+		initialid = malloc_row_perl2c_int(aTHX_ initialid_ref);
 		for (i = 0; i < nobjects; i++) clusterid[i] = initialid[i];
 	}
 
@@ -1182,9 +1122,7 @@ _clusterdistance(nrows,ncols,data_ref,mask_ref,weight_ref,cluster1_len,cluster2_
 	int      transpose;
 
 	PREINIT:
-	int   error_count;
 	int   nweights;
-	int   dummy;
 
 	int     * cluster1;
 	int     * cluster2;
@@ -1196,7 +1134,6 @@ _clusterdistance(nrows,ncols,data_ref,mask_ref,weight_ref,cluster1_len,cluster2_
 	double distance;
 
 	CODE:
-	error_count = 0;
 
 	/* ------------------------
 	 * Don't check the parameters, because we rely on the Perl
@@ -1206,8 +1143,8 @@ _clusterdistance(nrows,ncols,data_ref,mask_ref,weight_ref,cluster1_len,cluster2_
 	/* ------------------------
 	 * Convert cluster index Perl arrays to C arrays
 	 */
-	error_count += malloc_row_perl2c_int(aTHX_ cluster1_ref, &cluster1, &dummy);
-	error_count += malloc_row_perl2c_int(aTHX_ cluster2_ref, &cluster2, &dummy);
+	cluster1 = malloc_row_perl2c_int(aTHX_ cluster1_ref);
+	cluster2 = malloc_row_perl2c_int(aTHX_ cluster2_ref);
 
 	/* ------------------------
 	 * Convert data and mask matrices and the weight array

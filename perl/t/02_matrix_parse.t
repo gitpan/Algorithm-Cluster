@@ -86,7 +86,7 @@ my $data6 =  [
 ];
 
 
-# Various references that don't point to matrices at all
+# Various references that do not point to matrices at all
 my $data7 = $scalar_ref;
 my $data8 = $sub_ref;
 my $data9 = $hash_ref;
@@ -119,24 +119,11 @@ Row   2:      4.10    2.20    0.30    5.40    0.50
 Row   3:     12.10    2.00    0.00    5.00    0.00
 ';       test q( Algorithm::Cluster::readformat( $data3 ););
 
-$want = 'Row   0:     91.10   92.20   93.30   94.40   95.50
-Row   1:     93.10   93.20   91.30   92.40    0.00
-Row   2:     94.10   92.20   90.30    0.00    0.00
-Row   3:     12.10   92.00   90.00   95.00   90.00
-';
+$want = '';
 			test q( Algorithm::Cluster::readformat( $data4 ););
-
-$want = 'Row   0:      7.10    7.20    7.30    7.40    7.50
-Row   1:      7.10    7.20    7.30    7.40    0.00
-Row   2:      7.10    7.20    7.30    0.00    0.00
-Row   3:      7.10    0.00    7.00    7.00    7.00
-';
+$want = '';
 			test q( Algorithm::Cluster::readformat( $data5 ););
-
-$want = 'Row   0:     23.10   23.20   23.30   23.40   23.50
-Row   1:      0.00    0.00    0.00    0.00    0.00
-Row   2:     23.10   23.00   23.00   23.00   23.00
-';       
+$want = '';
 			test q( Algorithm::Cluster::readformat( $data6 ););
 
 $want = 'undef';       test q( Algorithm::Cluster::readformat( $data7 ););

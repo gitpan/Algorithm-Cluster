@@ -26,9 +26,7 @@
  * 
  */
 
-#ifndef WIN32
 #include <time.h>
-#endif
 #include <stdlib.h>
 #include <math.h>
 #include <float.h>
@@ -655,7 +653,7 @@ mask2  (input) int array
 This array which elements in data2 are missing. If mask2[i][j]==0, then
 data2[i][j] is missing.
 
-weight (input) double array, dimension( n )
+weight (input) double[n]
 The weights that are used to calculate the distance.
 
 index1     (input) int
@@ -732,7 +730,7 @@ mask2  (input) int array
 This array which elements in data2 are missing. If mask2[i][j]==0, then
 data2[i][j] is missing.
 
-weight (input) double array, dimension( n )
+weight (input) double[n]
 The weights that are used to calculate the distance.
 
 index1     (input) int
@@ -809,7 +807,7 @@ mask2  (input) int array
 This array which elements in data2 are missing. If mask2[i][j]==0, then
 data2[i][j] is missing.
 
-weight (input) double array, dimension( n )
+weight (input) double[n]
 The weights that are used to calculate the distance.
 
 index1     (input) int
@@ -908,7 +906,7 @@ mask2  (input) int array
 This array which elements in data2 are missing. If mask2[i][j]==0, then
 data2[i][j] is missing.
 
-weight (input) double array, dimension( n )
+weight (input) double[n]
 The weights that are used to calculate the distance.
 
 index1     (input) int
@@ -1009,7 +1007,7 @@ mask2  (input) int array
 This array which elements in data2 are missing. If mask2[i][j]==0, then
 data2[i][j] is missing.
 
-weight (input) double array, dimension( n )
+weight (input) double[n]
 The weights that are used to calculate the distance.
 
 index1     (input) int
@@ -1104,7 +1102,7 @@ mask2  (input) int array
 This array which elements in data2 are missing. If mask2[i][j]==0, then
 data2[i][j] is missing.
 
-weight (input) double array, dimension( n )
+weight (input) double[n]
 The weights that are used to calculate the distance.
 
 index1     (input) int
@@ -1195,7 +1193,7 @@ mask2  (input) int array
 This array which elements in data2 are missing. If mask2[i][j]==0, then
 data2[i][j] is missing.
 
-weight (input) double array, dimension( n )
+weight (input) double[n]
 These weights are ignored, but included for consistency with other distance
 measures.
 
@@ -1303,7 +1301,7 @@ mask2  (input) int array
 This array which elements in data2 are missing. If mask2[i][j]==0, then
 data2[i][j] is missing.
 
-weight (input) double array, dimension( n )
+weight (input) double[n]
 These weights are ignored, but included for consistency with other distance
 measures.
 
@@ -1452,7 +1450,7 @@ nelements  (input) int
 The number of elements to be clustered (i.e., the number of genes or microarrays
 to be clustered).
 
-clusterid  (output) int array, dimension( nelements )
+clusterid  (output) int[nelements]
 The cluster number to which an element was assigned.
 
 External Functions:
@@ -1721,13 +1719,13 @@ The distance matrix. To save space, the distance matrix is given in the
 form of a ragged array. The distance matrix is symmetric and has zeros
 on the diagonal. See distancematrix for a description of the content.
 
-clusterid  (output) int array, dimension( nelements )
+clusterid  (output) int[nelements]
 The cluster number to which each element belongs.
 
-centroid   (output) int array, dimension( nclusters )
+centroid   (output) int[nclusters]
 The index of the element that functions as the centroid for each cluster.
 
-errors     (output) double array, dimension( nclusters )
+errors     (output) double[nclusters]
 The within-cluster sum of distances between the items and the cluster
 centroid.
 
@@ -1838,11 +1836,11 @@ Arguments
 nclusters  (input) int
 The number of clusters to be found.
 
-data       (input) double array, dimension( nrows,ncolumns )
+data       (input) double[nrows][ncolumns]
 The array containing the data of the elements to be clustered (i.e., the gene
 expression data).
 
-mask       (input) int array, dimension( nrows,ncolumns )
+mask       (input) int[nrows][ncolumns]
 This array shows which data values are missing. If
 mask[i][j] == 0, then data[i][j] is missing.
 
@@ -1852,7 +1850,7 @@ The number of rows in the data matrix, equal to the number of genes.
 ncolumns  (input) int
 The number of columns in the data matrix, equal to the number of microarrays.
 
-weight (input) double array, dimension( n )
+weight (input) double[n]
 The weights that are used to calculate the distance.
 
 transpose  (input) int
@@ -1883,7 +1881,8 @@ dist=='s': Spearman's rank correlation
 dist=='k': Kendall's tau
 For other values of dist, the default (Euclidean distance) is used.
 
-clusterid  (output; input) int array, dimension( nrows or ncolumns )
+clusterid  (output; input) int[nrows] if transpose==0
+                           int[ncolumns] if transpose==1
 The cluster number to which a gene or microarray was assigned. If npass==0,
 then on input clusterid contains the initial clustering assignment from which
 the clustering algorithm starts. On output. it contains the clustering solution
@@ -2067,7 +2066,7 @@ distances is chosen.
 If npass==0, then the clustering algorithm will be run once, where the initial
 assignment of elements to clusters is taken from the clusterid array.
 
-clusterid  (output; input) int array, dimension( nelements )
+clusterid  (output; input) int[nelements]
 On input, if npass==0, then clusterid contains the initial clustering assignment
 from which the clustering algorithm starts; all numbers in clusterid should be
 between zero and nelements-1 inclusive. If npass!=0, clusterid is ignored on
@@ -2262,7 +2261,7 @@ distance matrix is freed.
 Arguments
 =========
 
-nrows     (input) int
+nrows      (input) int
 The number of rows in the gene expression data matrix (i.e., the number of
 genes)
 
@@ -2270,14 +2269,14 @@ ncolumns   (input) int
 The number of columns in the gene expression data matrix (i.e., the number of
 microarrays)
 
-data       (input) double array, dimension( nrows,ncolumns )
+data       (input) double[nrows][ncolumns]
 The array containing the gene expression data.
 
-mask       (input) int array, dimension( nrows,ncolumns )
+mask       (input) int[nrows][ncolumns]
 This array shows which data values are missing. If
 mask(i,j) == 0, then data(i,j) is missing.
 
-weight (input) double array, dimension( n )
+weight (input) double[n]
 The weights that are used to calculate the distance. The length of this vector
 is equal to the number of columns if the distances between genes are calculated,
 or the number of rows if the distances between microarrays are calculated.
@@ -2356,32 +2355,32 @@ where the cutoff and the exponent are specified by the user.
 Arguments
 =========
 
-int nrows (input)
+nrows      (input) int
 The number of rows in the gene expression data matrix, equal to the number of
 genes.
 
-int ncolumns (input)
+ncolumns   (input) int
 The number of columns in the gene expression data matrix, equal to the number of
 microarrays.
 
-double** data (input; dimension [nrows][ncolumns])
+data       (input) double[nrows][ncolumns]
 The array containing the gene expression data.
 
-int** mask (input; dimension [nrows][ncolumns])
-This array shows which data values are missing. If
-mask[i][j] == 0, then data[i][j] is missing.
+mask       (input) int[nrows][ncolumns]
+This array shows which data values are missing. If mask[i][j]==0, then
+data[i][j] is missing.
 
-double weight[] (input; dimension [ncolumns] if transpose==0,
-                                  [nrows] if transpose==1)
+weight     (input) int[ncolumns] if transpose==0,
+                   int[nrows]    if transpose==1
 The weights that are used to calculate the distance. The length of this vector
 is ncolumns if gene weights are being clustered, and nrows if microarrays
 weights are being clustered.
 
-int transpose (input)
+transpose (input) int
 If transpose==0, the weights of the rows of the data matrix are calculated.
 Otherwise, the weights of the columns of the data matrix are calculated.
 
-char dist (input)
+dist      (input) char
 Defines which distance measure is used, as given by the table:
 dist=='e': Euclidean distance
 dist=='b': City-block distance
@@ -2393,10 +2392,10 @@ dist=='s': Spearman's rank correlation
 dist=='k': Kendall's tau
 For other values of dist, the default (Euclidean distance) is used.
 
-double cutoff
+cutoff    (input) double
 The cutoff to be used to calculate the weights.
 
-double exponent
+exponent  (input) double
 The exponent to be used to calculate the weights.
 
 
@@ -2457,7 +2456,7 @@ Arguments
 nelements      (input) int
 The number of elements that were clustered.
 
-tree           (input) int array, dimension( nelements-1,2 )
+tree           (input) int[nelements-1][2]
 The clustering solution. Each row in the matrix describes one linking event,
 with the two columns containing the name of the nodes that were joined.
 The original elements are numbered 0..nelements-1, nodes are numbered
@@ -2469,7 +2468,7 @@ are assigned to cluster -1, and the routine returns.
 nclusters      (input) int
 The number of clusters to be formed.
 
-clusterid      (output) int array, dimensions( nelements )
+clusterid      (output) int[nelements]
 The number of the cluster to which each element was assigned. Space for this
 array should be allocated before calling the cuttree routine.
 
@@ -2551,14 +2550,15 @@ ncolumns  (input) int
 The number of columns in the gene expression data matrix, equal to the number of
 microarrays.
 
-data       (input) double array, dimension( nrows,ncolumns )
+data       (input) double[nrows][ncolumns]
 The array containing the gene expression data.
 
-mask       (input) int array, dimension( nrows,ncolumns )
+mask       (input) int[nrows][ncolumns]
 This array shows which data values are missing. If
 mask[i][j] == 0, then data[i][j] is missing.
 
-weight (input) double array, dimension( n )
+weight     (input) double[ncolumns] if transpose==0;
+                   double[nrows]    if transpose==1
 The weights that are used to calculate the distance. The length of this vector
 is ncolumns if genes are being clustered, and nrows if microarrays are being
 clustered.
@@ -2584,14 +2584,14 @@ The distance matrix. This matrix is precalculated by the calling routine
 treecluster. The pclcluster routine modifies the contents of distmatrix, but
 does not deallocate it.
 
-result  (output) int array, dimension( nelements-1,2 )
+result  (output) int[nelements-1][2]
 The clustering solution. Each row in the matrix describes one linking event,
 with the two columns containing the name of the nodes that were joined.
 The original genes are numbered 0..ngenes-1, nodes are numbered
 -1..-(nelements-1), where nelements is nrows or ncolumns depending on whether
 genes (rows) or microarrays (columns) are being clustered.
 
-linkdist (output) double array, dimension(nelements-1)
+linkdist (output) double[nelements-1]
 For each node, the distance between the two subnodes that were joined. The
 number of nodes (nnodes) is equal to the number of genes minus one if genes are
 clustered, or the number of microarrays minus one if microarrays are clustered.
@@ -2692,7 +2692,7 @@ clustered, or the number of microarrays minus one if microarrays are clustered.
 /* ******************************************************************** */
 
 static
-void pflcluster (int nrows, int ncolumns, double** data, int** mask,
+void pslcluster (int nrows, int ncolumns, double** data, int** mask,
   double weight[], double** distmatrix, char dist, int transpose,
   int result[][2], double linkdist[])
 
@@ -2701,8 +2701,17 @@ void pflcluster (int nrows, int ncolumns, double** data, int** mask,
 Purpose
 =======
 
-The pflcluster routine is a fast and memory-efficient implementation of the
-pairwise centroid-linking hierarchical clustering algorithm.
+The pslcluster routine performs single-linkage hierarchical clustering, using
+either the distance matrix directly, if available, or by calculating the
+distances from the data array. This implementation is based on the SLINK
+algorithm, described in:
+Sibson, R. (1973). SLINK: An optimally efficient algorithm for the single-link
+cluster method. The Computer Journal, 16(1): 30-34.
+The output of this algorithm is identical to conventional single-linkage
+hierarchical clustering, but is much more memory-efficient and faster. Hence,
+it can be applied to large data sets, for which the conventional single-
+linkage algorithm fails due to lack of memory.
+
 
 Arguments
 =========
@@ -2715,14 +2724,14 @@ ncolumns  (input) int
 The number of columns in the gene expression data matrix, equal to the number of
 microarrays.
 
-data       (input) double array, dimension( nrows,ncolumns )
+data       (input) double[nrows][ncolumns]
 The array containing the gene expression data.
 
-mask       (input) int array, dimension( nrows,ncolumns )
+mask       (input) int[nrows][ncolumns]
 This array shows which data values are missing. If
 mask[i][j] == 0, then data[i][j] is missing.
 
-weight (input) double array, dimension( n )
+weight (input) double[n]
 The weights that are used to calculate the distance. The length of this vector
 is ncolumns if genes are being clustered, and nrows if microarrays are being
 clustered.
@@ -2745,253 +2754,106 @@ For other values of dist, the default (Euclidean distance) is used.
 
 distmatrix (input) double**
 The distance matrix. If the distance matrix is passed by the calling routine
-treecluster, it is used by pflcluster to speed up the clustering calculation.
-The pflcluster routine does not modify the contents of distmatrix, and does
+treecluster, it is used by pslcluster to speed up the clustering calculation.
+The pslcluster routine does not modify the contents of distmatrix, and does
 not deallocate it. If distmatrix is NULL, the pairwise distances are calculated
-by the pflcluster routine, and (partially) stored in the cache. Note that the
-original gene expression data (specified by the data and mask arguments) are
-still needed even if distmatrix is passed.
+by the pslcluster routine from the gene expression data (the data and mask
+arrays) and stored in temporary arrays. If distmatrix is passed, the original
+gene expression data (specified by the data and mask arguments) are not needed
+and are therefore ignored.
 
-result  (output) int array, dimension( nelements-1,2 )
+result  (output) int[nelements-1][2]
 The clustering solution. Each row in the matrix describes one linking event,
 with the two columns containing the name of the nodes that were joined.
 The original genes are numbered 0..ngenes-1, nodes are numbered
 -1..-(nelements-1), where nelements is nrows or ncolumns depending on whether
 genes (rows) or microarrays (columns) are being clustered.
 
-linkdist (output) double array, dimension(nelements-1)
+linkdist (output) double[nelements-1]
 For each node, the distance between the two subnodes that were joined. The
 number of nodes (nnodes) is equal to the number of genes minus one if genes are
 clustered, or the number of microarrays minus one if microarrays are clustered.
 
 ========================================================================
 */
-{ double (*metric)
-    (int,double**,double**,int**,int**,const double[],int,int,int);
-  int i, j, k;
-  int nelements = (transpose==0) ? nrows : ncolumns;
-  const int ndata = (transpose==0) ? ncolumns : nrows;
-  int inode;
+{ int i, j, k;
+  const int nelements = transpose ? ncolumns : nrows;
   const int nnodes = nelements - 1;
-  double distance;
+  int* vector = malloc(nnodes*sizeof(int));
+  double* temp = malloc(nnodes*sizeof(double));
+  int* index;
 
-  typedef struct  { int index; int closest; double distance; } cacherow;
-  cacherow* cache = malloc(nelements * sizeof(cacherow));
- 
-  /* Set the metric function as indicated by dist */
-  setmetric (dist, &metric);
-
-  /* Storage for node data */
-  if (transpose)
-  { double** newdata = malloc(nelements*sizeof(double*));
-    int** newmask = malloc(nelements*sizeof(int*));
-    for (i = 0; i < nelements; i++)
-    { newdata[i] = malloc(ndata*sizeof(double));
-      newmask[i] = malloc(ndata*sizeof(int));
-      for (j = 0; j < ndata; j++)
-      { newdata[i][j] = data[j][i];
-        newmask[i][j] = mask[j][i];
-      }
-    }
-    data = newdata;
-    mask = newmask;
-
-  }
-  else
-  { double** newdata = malloc(nelements*sizeof(double*));
-    int** newmask = malloc(nelements*sizeof(int*));
-    for (i = 0; i < nelements; i++)
-    { newdata[i] = malloc(ndata*sizeof(double));
-      newmask[i] = malloc(ndata*sizeof(int));
-      memcpy(newdata[i], data[i], ndata*sizeof(double));
-      memcpy(newmask[i], mask[i], ndata*sizeof(int));
-    }
-    data = newdata;
-    mask = newmask;
+  for (i = 0; i < nnodes; i++)
+  { vector[i] = i;
+    linkdist[i] = DBL_MAX;
   }
 
-  normalize(nelements, ndata, data, mask, dist);
-
-  for (i = 0; i < nelements; i++)
-  { cache[i].distance = DBL_MAX;
-    cache[i].index = i;
-  }
-
-  if (distmatrix)
-  { for (i = 0; i < nelements; i++)
-    { for (j = 0; j < i; j++)
-      { distance = distmatrix[i][j];
-        if (distance < cache[i].distance)
-        { cache[i].distance = distance;
-          cache[i].closest = j;
+  if(distmatrix)
+  { for (i = 0; i < nrows; i++)
+    { for (j = 0; j < i; j++) temp[j] = distmatrix[i][j];
+      for (j = 0; j < i; j++)
+      { k = vector[j];
+        if (linkdist[j] >= temp[j])
+        { if (linkdist[j] < temp[k]) temp[k] = linkdist[j];
+          linkdist[j] = temp[j];
+          vector[j] = i;
         }
-        if (distance < cache[j].distance)
-        { cache[j].distance = distance;
-          cache[j].closest = i;
-        }
+        else if (temp[j] < temp[k]) temp[k] = temp[j];
       }
+      for (j = 0; j < i; j++)
+        if (linkdist[j] >= linkdist[vector[j]]) vector[j] = i;
     }
   }
   else
-  { for (i = 0; i < nelements; i++)
-    { for (j = 0; j < i; j++)
-      { distance = metric(ndata, data, data, mask, mask, weight, i, j, 0);
-        if (distance < cache[i].distance)
-        { cache[i].distance = distance;
-          cache[i].closest = j;
+  { double (*metric)
+      (int,double**,double**,int**,int**,const double[],int,int,int);
+    const int ndata = transpose ? nrows : ncolumns;
+    /* Set the metric function as indicated by dist */
+    setmetric(dist, &metric);
+    for (i = 0; i < nelements; i++)
+    { for (j = 0; j < i; j++) temp[j] =
+        metric(ndata, data, data, mask, mask, weight, i, j, transpose);
+      for (j = 0; j < i; j++)
+      { k = vector[j];
+        if (linkdist[j] >= temp[j])
+        { if (linkdist[j] < temp[k]) temp[k] = linkdist[j];
+          linkdist[j] = temp[j];
+          vector[j] = i;
         }
-        if (distance < cache[j].distance)
-        { cache[j].distance = distance;
-          cache[j].closest = i;
-        }
+        else if (temp[j] < temp[k]) temp[k] = temp[j];
       }
+      for (j = 0; j < i; j++)
+        if (linkdist[j] >= linkdist[vector[j]]) vector[j] = i;
     }
   }
 
-  for (inode = 0; inode < nnodes; inode++)
-  { /* Find the pair with the shortest distance */
-    j = 0;
-    distance = cache[j].distance;
-    for (i = 1; i < nelements; i++)
-    { if (cache[i].distance < distance)
-      { distance = cache[i].distance;
-        j = i;
-      }
-    }
-    if (cache[j].closest < j)
-    { i = j;
-      j = cache[j].closest;
-    }
-    else i = cache[j].closest;
-    linkdist[inode] = distance;
-    result[inode][0] = cache[i].index;
-    result[inode][1] = cache[j].index;
-    /* Update data */
-    for (k = 0; k < ndata; k++)
-    { data[j][k] = data[i][k]*mask[i][k] + data[j][k]*mask[j][k];
-      mask[j][k] = mask[i][k] + mask[j][k];
-      if (mask[j][k]) data[j][k] /= mask[j][k];
-    }
-    nelements--;
-    free(data[i]);
-    free(mask[i]);
-    data[i] = data[nelements];
-    mask[i] = mask[nelements];
-    /* Update the cache */
-    cache[i] = cache[nelements];
-    cache[j].distance = DBL_MAX;
-    cache[j].index = -inode-1;
-    for (k = 0; k < nelements; k++)
-    { if (j==k) continue;
-      distance = metric(ndata, data, data, mask, mask, weight, j, k, 0);
-      if (distance < cache[j].distance)
-      { cache[j].distance = distance;
-        cache[j].closest = k;
-      }
-      if (distance < cache[k].distance)
-      { cache[k].distance = distance;
-        cache[k].closest = j;
-      }
-      else if (cache[k].closest==i || cache[k].closest==j)
-      { int l;
-        cache[k].distance = DBL_MAX;
-        for (l = 0; l < nelements; l++)
-        { if (l==k) continue;
-          distance = metric(ndata, data, data, mask, mask, weight, k, l, 0);
-          if (distance < cache[k].distance)
-          { cache[k].distance = distance;
-            cache[k].closest = l;
-          }
-        }
-      }
-      else if (cache[k].closest==nelements) cache[k].closest = i;
-    }
+  /* One of these days, I should write my own quicksort routine that takes
+   * care of this reordering more efficiently. */
+  index = malloc(nelements*sizeof(int));
+  sort(nnodes, linkdist, index);
+  for (i = 0; i < nnodes; i++) temp[i] = linkdist[i];
+  for (i = 0; i < nnodes; i++)
+  { j = index[i];
+    result[i][0] = j;
+    linkdist[i] = temp[j];
   }
+  free(temp);
 
-  /* Free temporarily allocated space */
-  free(cache);
-  free(data[0]);
-  free(mask[0]);
-  free(data);
-  free(mask);
+  for (i = 0; i < nelements; i++) index[i] = i;
+  for (i = 0; i < nnodes; i++)
+  { j = result[i][0];
+    k = vector[j];
+    result[i][0] = index[j];
+    result[i][1] = index[k];
+    index[k] = -i-1;
+  }
+  free(vector);
+  free(index);
 
   return;
 }
 
 /* ********************************************************************* */
-
-static
-void pslcluster (int nelements, double** distmatrix, int result[][2],
-  double linkdist[])
-/*
-
-Purpose
-=======
-
-The pslcluster routine performs clustering using pairwise single-linking
-on the given distance matrix.
-
-Arguments
-=========
-
-nelements     (input) int
-The number of elements to be clustered.
-
-distmatrix (input) double**
-The distance matrix, with nelements rows, each row being filled up to the
-diagonal. The elements on the diagonal are not used, as they are assumed to be
-zero. The distance matrix will be modified by this routine.
-
-result  (output) int array, dimension( nelements-1,2 )
-The clustering solution. Each row in the matrix describes one linking event,
-with the two columns containing the name of the nodes that were joined.
-The original elements are numbered 0..nelements-1, nodes are numbered
--1..-(nelements-1).
-
-linkdist (output) double array, dimension(nelements-1)
-For each node, the distance between the two subnodes that were joined. The
-number of nodes (nnodes) is equal to the number of genes minus one if genes are
-clustered, or the number of microarrays minus one if microarrays are clustered.
-
-========================================================================
-*/
-{ int j;
-  int nNodes;
-
-  /* Setup a list specifying to which cluster a gene belongs */
-  int* clusterid = malloc(nelements*sizeof(int));
-  for (j = 0; j < nelements; j++) clusterid[j] = j;
-
-  for (nNodes = nelements; nNodes > 1; nNodes--)
-  { int isaved = 1;
-    int jsaved = 0;
-    linkdist[nelements-nNodes] = find_closest_pair(nNodes, distmatrix, &isaved, &jsaved);
-
-    /* Fix the distances */
-    for (j = 0; j < jsaved; j++)
-      distmatrix[jsaved][j] = min(distmatrix[isaved][j],distmatrix[jsaved][j]);
-    for (j = jsaved+1; j < isaved; j++)
-      distmatrix[j][jsaved] = min(distmatrix[isaved][j],distmatrix[j][jsaved]);
-    for (j = isaved+1; j < nNodes; j++)
-      distmatrix[j][jsaved] = min(distmatrix[j][isaved],distmatrix[j][jsaved]);
-
-    for (j = 0; j < isaved; j++)
-      distmatrix[isaved][j] = distmatrix[nNodes-1][j];
-    for (j = isaved+1; j < nNodes-1; j++)
-      distmatrix[j][isaved] = distmatrix[nNodes-1][j];
-
-    /* Update clusterids */
-    result[nelements-nNodes][0] = clusterid[isaved];
-    result[nelements-nNodes][1] = clusterid[jsaved];
-    clusterid[jsaved] = nNodes-nelements-1;
-    clusterid[isaved] = clusterid[nNodes-1];
-  }
-  free(clusterid);
- 
-  return;
-}
-
-/* ******************************************************************** */
 
 static
 void pmlcluster (int nelements, double** distmatrix, int result[][2],
@@ -3015,13 +2877,13 @@ The distance matrix, with nelements rows, each row being filled up to the
 diagonal. The elements on the diagonal are not used, as they are assumed to be
 zero. The distance matrix will be modified by this routine.
 
-result  (output) int array, dimension( nelements-1,2 )
+result  (output) int[nelements-1][2]
 The clustering solution. Each row in the matrix describes one linking event,
 with the two columns containing the name of the nodes that were joined.
 The original elements are numbered 0..nelements-1, nodes are numbered
 -1..-(nelements-1).
 
-linkdist (output) double array, dimension(nelements-1)
+linkdist (output) double[nelements-1]
 For each node, the distance between the two subnodes that were joined. The
 number of nodes (nnodes) is equal to the number of genes minus one if genes are
 clustered, or the number of microarrays minus one if microarrays are clustered.
@@ -3088,13 +2950,13 @@ The distance matrix, with nelements rows, each row being filled up to the
 diagonal. The elements on the diagonal are not used, as they are assumed to be
 zero. The distance matrix will be modified by this routine.
 
-result  (output) int array, dimension( nelements-1,2 )
+result  (output) int[nelements-1][2]
 The clustering solution. Each row in the matrix describes one linking event,
 with the two columns containing the name of the nodes that were joined.
 The original elements are numbered 0..nelements-1, nodes are numbered
 -1..-(nelements-1).
 
-linkdist (output) double array, dimension(nelements-1)
+linkdist (output) double[nelements-1]
 For each node, the distance between the two subnodes that were joined. The
 number of nodes (nnodes) is equal to the number of genes minus one if genes are
 clustered, or the number of microarrays minus one if microarrays are clustered.
@@ -3184,14 +3046,14 @@ The number of rows in the data matrix, equal to the number of genes.
 ncolumns  (input) int
 The number of columns in the data matrix, equal to the number of microarrays.
 
-data       (input) double array, dimension( nrows,ncolumns )
+data       (input) double[nrows][ncolumns]
 The array containing the data of the vectors to be clustered.
 
-mask       (input) int array, dimension( nrows,ncolumns )
-This array shows which data values are missing. If
-mask[i][j] == 0, then data[i][j] is missing.
+mask       (input) int[nrows][ncolumns]
+This array shows which data values are missing. If mask[i][j]==0, then
+data[i][j] is missing.
 
-weight (input) double array, dimension( n )
+weight (input) double array[n]
 The weights that are used to calculate the distance.
 
 transpose  (input) int
@@ -3221,7 +3083,7 @@ sufficient to perform the clustering algorithm. For pairwise centroid-linkage
 clustering, however, the gene expression data are always needed, even if the
 distance matrix itself is available.
 
-result  (output) int array, dimension( nelements-1,2 )
+result  (output) int[nelements-1][2]
 The clustering solution. Each row in the matrix describes one linking event,
 with the two columns containing the name of the nodes that were joined.
 The original elements are numbered 0..nelements-1, nodes are numbered
@@ -3230,7 +3092,7 @@ genes (rows) or microarrays (columns) are being clustered.
 If the treecluster routine fails due to lack of memory, the two columns of the
 first row of result are set to (0,0) before returning.
 
-linkdist (output) double array, dimension(nelements-1)
+linkdist (output) double[nelements-1]
 For each node, the distance between the two subnodes that were joined. The
 number of nodes (nnodes) is equal to the number of genes minus one if genes are
 clustered, or the number of microarrays minus one if microarrays are clustered.
@@ -3246,7 +3108,7 @@ routine should deallocate the distance matrix after the return from treecluster.
 ========================================================================
 */
 { const int nelements = (transpose==0) ? nrows : ncolumns;
-  const int ldistmatrix = (distmatrix==NULL && method!='f') ? 1 : 0;
+  const int ldistmatrix = (distmatrix==NULL && method!='s') ? 1 : 0;
   int i;
 
   if (nelements < 2) return 1;
@@ -3254,16 +3116,14 @@ routine should deallocate the distance matrix after the return from treecluster.
   /* Calculate the distance matrix if the user didn't give it */
   if(ldistmatrix)
   { distmatrix =
-      distancematrix (nrows, ncolumns, data, mask, weight, dist, transpose);
-    if (!distmatrix) /* Insufficient memory */
-    { /* Set the first row in result to (0,0) to indicate the memory error */
-      return 0;
-    }
+      distancematrix(nrows, ncolumns, data, mask, weight, dist, transpose);
+    if (!distmatrix) return 0; /* Insufficient memory */
   }
 
   switch(method)
   { case 's':
-      pslcluster(nelements, distmatrix, result, linkdist);
+      pslcluster(nrows, ncolumns, data, mask, weight, distmatrix, dist,
+                 transpose, result, linkdist);
       break;
     case 'm':
       pmlcluster(nelements, distmatrix, result, linkdist);
@@ -3275,9 +3135,6 @@ routine should deallocate the distance matrix after the return from treecluster.
       pclcluster(nrows, ncolumns, data, mask, weight, distmatrix, dist,
                  transpose, result, linkdist);
       break;
-    case 'f':
-      pflcluster(nrows, ncolumns, data, mask, weight, distmatrix, dist,
-                 transpose, result, linkdist);
   }
 
   /* Deallocate space for distance matrix, if it was allocated by treecluster */
@@ -3579,21 +3436,22 @@ The number of rows in the data matrix, equal to the number of genes.
 ncolumns  (input) int
 The number of columns in the data matrix, equal to the number of microarrays.
 
-data       (input) double array, dimension( nrows,ncolumns )
+data       (input) double[nrows][ncolumns]
 The array containing the gene expression data.
 
-mask       (input) int array, dimension( nrows,ncolumns )
+mask       (input) int[nrows][ncolumns]
 This array shows which data values are missing. If
 mask[i][j] == 0, then data[i][j] is missing.
 
-weights    (input) double array, dimension( n )
+weights    (input) double[ncolumns] if transpose==0;
+                   double[nrows]    if transpose==1
 The weights that are used to calculate the distance. The length of this vector
 is ncolumns if genes are being clustered, or nrows if microarrays are being
 clustered.
 
 transpose  (input) int
-If transpose==0, the rows of the matrix are clustered. Otherwise, columns
-of the matrix are clustered.
+If transpose==0, the rows (genes) of the matrix are clustered. Otherwise,
+columns (microarrays) of the matrix are clustered.
 
 nxgrid    (input) int
 The number of grid cells horizontally in the rectangular topology of clusters.
@@ -3619,16 +3477,15 @@ dist=='s': Spearman's rank correlation
 dist=='k': Kendall's tau
 For other values of dist, the default (Euclidean distance) is used.
 
-celldata (output) double array,
-  dimension(nxgrid, nygrid, ncolumns) if genes are being clustered
-  dimension(nxgrid, nygrid, nrows) if microarrays are being clustered
+celldata (output) double[nxgrid][nygrid][ncolumns] if transpose==0;
+                  double[nxgrid][nygrid][nrows]    if tranpose==1
 The gene expression data for each node (cell) in the 2D grid. This can be
 interpreted as the centroid for the cluster corresponding to that cell. If
 celldata is NULL, then the centroids are not returned. If celldata is not
 NULL, enough space should be allocated to store the centroid data before callingsomcluster.
 
-clusterid (output), int[nrows][2] if genes are being clustered
-                    int[ncolumns][2] if microarrays are being clustered
+clusterid (output), int[nrows][2]    if transpose==0;
+                    int[ncolumns][2] if transpose==1
 For each item (gene or microarray) that is clustered, the coordinates of the
 cell in the 2D grid to which the item was assigned. If clusterid is NULL, the
 cluster assignments are not returned. If clusterid is not NULL, enough memory
@@ -3699,14 +3556,15 @@ ncolumns      (input) int
 The number of columns (i.e., the number of microarrays) in the gene expression
 data matrix.
 
-data       (input) double array, dimension( nrows,ncolumns )
+data       (input) double[nrows][ncolumns]
 The array containing the data of the vectors.
 
-mask       (input) int array, dimension( nrows,ncolumns )
+mask       (input) int[nrows][ncolumns]
 This array shows which data values are missing. If
 mask(i,j) == 0, then data(i,j) is missing.
 
-weight     (input) double array, dimension( n )
+weight     (input) double[ncolumns] if transpose==0;
+                   double[nrows]    if transpose==1
 The weights that are used to calculate the distance.
 
 n1         (input) int
@@ -3715,10 +3573,10 @@ The number of elements in the first cluster.
 n2         (input) int
 The number of elements in the second cluster.
 
-index1     (input) int array, dimension ( n1 )
+index1     (input) int[n1]
 Identifies which genes/microarrays belong to the first cluster.
 
-index2     (input) int array, dimension ( n2 )
+index2     (input) int[n2]
 Identifies which genes/microarrays belong to the second cluster.
 
 dist       (input) char

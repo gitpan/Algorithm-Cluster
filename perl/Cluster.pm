@@ -18,7 +18,7 @@ package Algorithm::Cluster;
 # This library was written at the Laboratory of DNA Information Analysis,
 # Human Genome Center, Institute of Medical Science, University of Tokyo,
 # 4-6-1 Shirokanedai, Minato-ku, Tokyo 108-8639, Japan.
-# Contact: mdehoon@ims.u-tokyo.ac.jp
+# Contact: mdehoon@c2b2.columbia.edu
 # 
 # The Algorithm::Cluster module for Perl was released under the same terms
 # as the Perl Artistic license. See the file artistic.txt for details.
@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.29';
+$VERSION     = '1.30';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 

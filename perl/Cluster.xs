@@ -625,6 +625,25 @@ ragged_matrix_c2perl_dbl(pTHX_ double ** matrix, int nobjects) {
 }
 
 /* -------------------------------------------------
+ * Check if the data matrix is a distance matrix, or
+ * a raw distance matrix.
+ */
+static int
+is_distance_matrix(pTHX_ SV * data_ref)
+{
+	/* We don't check data_ref because we expect the caller to check it 
+	 */
+	AV * matrix_av  = (AV *) SvRV(data_ref);
+	SV * row_ref    = *(av_fetch(matrix_av, (I32) 0, 0)); 
+	AV * row_av     = (AV *) SvRV(row_ref);
+	const int ncols = (int) av_len(row_av) + 1;
+	if (ncols==0) return 1;
+
+	return 0;
+}
+
+
+/* -------------------------------------------------
  * Convert the 'data' and 'mask' matrices and the 'weight' array
  * from C to Perl.  Also check for errors, and ignore the
  * mask or the weight array if there are any errors. 
@@ -844,9 +863,10 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist,method)
     int       (*result)[2];
     double   * linkdist;
 
-    double  * weight;
-    double ** matrix;
-    int    ** mask;
+    double  * weight = NULL;
+    double ** matrix = NULL;
+    int    ** mask   = NULL;
+    double ** distancematrix = NULL;
     const int ndata = transpose ? nrows : ncols;
     const int nelements = transpose ? ncols : nrows;
     int       success;
@@ -859,8 +879,6 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist,method)
 
     /* ------------------------
      * Malloc space for result[][2] and linkdist[]. 
-     * Don't bother to cast the pointer for 'result', because we can't 
-     * cast it to a pointer-to-array anyway. 
      */
     result   = malloc(2 * (nelements-1) * sizeof(int) );
     linkdist = malloc(    (nelements-1) * sizeof(double) );
@@ -870,18 +888,22 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist,method)
      * from C to Perl.  Also check for errors, and ignore the
      * mask or the weight array if there are any errors. 
      */
-    malloc_matrices( aTHX_
-	weight_ref, &weight, ndata, 
-	data_ref,   &matrix,
-	mask_ref,   &mask,  
-	nrows,      ncols
-    );
+    if (is_distance_matrix(aTHX_ data_ref)) {
+	distancematrix = parse_distance(aTHX_ data_ref, nelements);
+    } else {
+	malloc_matrices( aTHX_
+	    weight_ref, &weight, ndata, 
+	    data_ref,   &matrix,
+	    mask_ref,   &mask,  
+	    nrows,      ncols
+	);
+    }
 
     /* ------------------------
      * Run the library function
      */
-    success = treecluster( nrows, ncols, matrix, mask, weight, transpose,
-                           dist[0], method[0], result, linkdist, 0);
+    success = treecluster(nrows, ncols, matrix, mask, weight, transpose,
+                          dist[0], method[0], result, linkdist, distancematrix);
 
     /* ------------------------
      * Check result to make sure we didn't run into memory problems
@@ -914,10 +936,14 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist,method)
     /* ------------------------
      * Free what we've malloc'ed 
      */
-    free_matrix_int(mask,     nrows);
-    free_matrix_dbl(matrix,   nrows);
+    if (matrix) {
+	free_matrix_int(mask,     nrows);
+	free_matrix_dbl(matrix,   nrows);
+	free(weight);
+    } else {
+	free_ragged_matrix_dbl(distancematrix, nelements);
+    }
 
-    free(weight);
     free(result);
     free(linkdist);
 
@@ -1305,13 +1331,11 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxgrid,nygrid,ini
 
 	/* ------------------------
 	 * Allocate space for clusterid[][2]. 
-	 * Don't bother to cast the pointer, because we can't cast
-	 * it to a pointer-to-array anway. 
 	 */
 	if (transpose==0) {
-		clusterid  =  malloc(2 * (nrows) * sizeof(int) );
+		clusterid  =  malloc(2 * nrows * sizeof(int) );
 	} else {
-		clusterid  =  malloc(2 * (ncols) * sizeof(int) );
+		clusterid  =  malloc(2 * ncols * sizeof(int) );
 	}
 	celldata  =  0;
 	/* Don't return celldata, for now at least */

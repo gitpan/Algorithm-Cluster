@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.30';
+$VERSION     = '1.31';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -236,7 +236,7 @@ sub check_matrix_dimensions  {
 
 sub check_distance_matrix  {
 
-	my ($param, $default) = @_;
+	my $distances = $_[0];
 	my $i;
 	my $row;
         my $column;
@@ -244,42 +244,41 @@ sub check_distance_matrix  {
 	#----------------------------------
 	# Check the data matrix
 	#
-	unless (ref($param->{distances}) eq 'ARRAY') {
-		module_warn( "Wanted array reference, but got a reference to ",
-				ref($param->{distances}), ".");
-		return;
+	my $reference = ref($distances);
+	if (!$reference) {
+		return "Wanted array reference but did not receive a reference";
+	}
+	elsif ($reference ne 'ARRAY') {
+		return "Wanted array reference, but got a $reference";
 	}
 
-	$param->{nobjects} = scalar @{ $param->{distances} };
+	my $nobjects = scalar @{ $distances };
 
-	unless ($param->{nobjects} > 0) {
-		module_warn("Distance matrix has zero rows.");
-		return;
+	unless ($nobjects > 0) {
+		return "Distance matrix has zero rows";
 	}
 
 	$i = 0;
-	$row =  $param->{distances}->[0];
-	foreach $row (@{ $param->{distances}}) {
+	# $row =  $distances->[0];
+	foreach $row (@{ $distances}) {
 		unless (defined $row) {
-			module_warn( "Row $i is undefined");
-			return;
+			return "Row $i is undefined";
 		}
 		unless (ref($row) eq 'ARRAY') {
-			module_warn("Row $i is not an array");
-			return;
+			return "Row $i is not an array";
 		}
-		unless (@{$row} >= $i) {
-			module_warn("Row $i has insufficient columns");
-			return;
+		unless (@{$row} == $i) {
+			return "Row $i has incorrect columns";
 		}
 		foreach $column (@{$row}) {
 			unless (defined($column)) {
-				module_warn("Row $i contains undefined columns");
-				return;
+				return "Row $i contains undefined columns";
 			}
 		}
+		$i++;
 	}
-	return 1;
+
+	return "OK";
 }
 
 sub check_initialid  {
@@ -475,7 +474,12 @@ sub kmedoids  {
 	#----------------------------------
 	# Check the distance matrix
 	#
-	return unless check_distance_matrix(\%param, \%default);
+	my $message = check_distance_matrix($param{distances});
+	unless ($message eq "OK") {
+		module_warn($message); 
+		return;
+	}
+	$param{nobjects} = scalar @{ $param{distances} }; 
 
 
 	#----------------------------------
@@ -523,25 +527,38 @@ sub treecluster  {
 	#----------------------------------
 	# Check the data, matrix and weight parameters
 	#
-	return unless check_matrix_dimensions(\%param, \%default);
+	my $message = check_distance_matrix($param{data});
+	if ($message eq "OK") {
+		$param{nrows}     = scalar @{ $param{data} }; 
+		$param{ncols}     = scalar @{ $param{data} }; 
+		$param{mask}      = $default{mask};
+		$param{weight}    = $default{weight};
+		$param{transpose} = $default{transpose};
+		$param{dist}      = $default{dist};
+		#----------------------------------
+		# Check the clustering method
+		#
+		unless($param{method}    =~ /^[sma]$/) {
+			module_warn("Parameter 'method' must be one of [sma] (got '$param{method}')");
+			return;
+		}
 
+	} else {
+		return unless check_matrix_dimensions(\%param, \%default);
 
-	#----------------------------------
-	# Check the other parameters
-	#
-	unless($param{transpose} =~ /^[01]$/) {
-		module_warn("Parameter 'transpose' must be either 0 or 1 (got '$param{transpose}')");
-		return;
-	}
+		unless($param{transpose} =~ /^[01]$/) {
+			module_warn("Parameter 'transpose' must be either 0 or 1 (got '$param{transpose}')");
+			return;
+		}
 
-	unless($param{method}    =~ /^[smca]$/) {
-		module_warn("Parameter 'method' must be one of [smca] (got '$param{method}')");
-		return;
-	}
-
-	unless($param{dist}      =~ /^[cauxskeb]$/) {
-		module_warn("Parameter 'dist' must be one of: [cauxskeb] (got '$param{dist}')");
-		return;
+		unless($param{dist}      =~ /^[cauxskeb]$/) {
+			module_warn("Parameter 'dist' must be one of: [cauxskeb] (got '$param{dist}')");
+			return;
+		}
+		unless($param{method}    =~ /^[smca]$/) {
+			module_warn("Parameter 'method' must be one of [smca] (got '$param{method}')");
+			return;
+		}
 	}
 
 

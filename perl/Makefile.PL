@@ -1,7 +1,5 @@
 use ExtUtils::MakeMaker;
 use Config;
-use POSIX qw(uname);
-#$Verbose=1;
 
 WriteMakefile(
 	NAME		=> 'Algorithm::Cluster',

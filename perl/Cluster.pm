@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.31';
+$VERSION     = '1.32';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -807,8 +807,7 @@ __END__
 
 =head1 NAME
 
-Algorithm::Cluster - perl interface to Michiel Jan Laurens de Hoon's
-C clustering library
+Algorithm::Cluster - Perl interface to the C Clustering Library.
 
 
 =head1 DESCRIPTION
@@ -817,11 +816,11 @@ This module is an interface to the C Clustering Library,
 a general purpose library implementing functions for hierarchical 
 clustering (pairwise simple, complete, average, and centroid linkage), 
 along with k-means and k-medians clustering, and 2D self-organizing 
-maps.  The library is distributed along 
+maps.  This library was developed at the Human Genome Center of the
+University of Tokyo. The C Clustering Library is distributed along 
 with Cluster 3.0, an enhanced version of the famous 
 Cluster program originally written by Michael Eisen 
-while at Stanford University.  The C clustering library 
-was written by Michiel de Hoon.
+while at Stanford University.
 
 =head1 EXAMPLES
 
@@ -831,29 +830,27 @@ See the scripts in the examples subdirectory of the package.
 
 =over 4
 
-=item * Version 0.12
-
-	First version.
+=item * C Clustering Library version 1.32 (2006.06.18)
 
 =head1 TO DO
 
 =over
 
-=item *  Win32 package
-
-Create a PPM package for Win32 systems.
+=item *  Create the interface to the getclustercentroids routine
+=item *  Write Perl routines to read and write Cluster/TreeView-style data files.
 
 =head1 THANKS
 
-Thanks to Michiel de Hoon for making the C Clustering library
-available, and for his kind assistance with this module.
-Thanks also to Michael Eisen, for creating the software packages
+Thanks to Michael Eisen, for creating the software packages
 Cluster and TreeView. 
 
 =head1 AUTHOR
 
 John Nolan jpnolan@sonic.net 2003.  
-A copyright statment is contained in the source code itself. 
+Michiel de Hoon mdehoon "AT" c2b2.columbia.edu 2003-2006.  
+Seiya Imoto imoto "AT" ims.u-tokyo.ac.jp 2003-2006.  
+Satoru Miyano 2003-2006.  
+A copyright statement is contained in the source code itself. 
 
 This module is a Perl wrapper for the C clustering library for 
 cDNA microarray data, Copyright (C) 2002 Michiel Jan Laurens de Hoon.

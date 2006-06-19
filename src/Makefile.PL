@@ -1,6 +1,13 @@
 use ExtUtils::MakeMaker;
 use Config;
-#$Verbose=1;
+use POSIX;
+
+# Check if this is a 64 bit machine
+my $CCFLAGS = '';
+my $machine = (POSIX::uname())[4];
+if ($machine =~ /64/) {
+        $CCFLAGS = '-fPIC';
+}
 
 WriteMakefile(
 	NAME         => 'libcluster',
@@ -11,6 +18,7 @@ WriteMakefile(
 	H	     => ['cluster.h'],
 	OBJECT       => 'cluster.o ../ranlib/src/ranlib.o ../ranlib/src/com.o ../ranlib/linpack/linpack.o',
 	MYEXTLIB     => 'libcluster$(LIB_EXT)',
+	CCFLAGS      => $CCFLAGS,
 	clean        => {'FILES' => 'libcluster$(LIBEEXT) $(OBJECT)'},
 );
 

@@ -35,7 +35,7 @@ extended capabilities. In particular, it is possible to visualize k-means
 clustering results in addition to hierarchical clustering results.
 
 Java TreeView was written by Alok Saldanha at Stanford University; it can be
-downloaded at http://genome-www.stanford.edu/~alok/TreeView.
+downloaded at http://jtreeview.sourceforge.net.
 
 
 MANUAL

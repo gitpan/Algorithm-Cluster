@@ -12,7 +12,7 @@ WriteMakefile(
 			'Cluster.pm' =>	'$(INST_LIBDIR)/Cluster.pm',
 		},
 	LIBS		=> '-lm',
-	INC		=> '-I../src -I../ranlib/src',
+	INC		=> '-I../src',
 	MYEXTLIB	=> '../src/libcluster$(LIB_EXT)',
 );
 

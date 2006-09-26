@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.32';
+$VERSION     = '1.33';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -830,13 +830,14 @@ See the scripts in the examples subdirectory of the package.
 
 =over 4
 
-=item * C Clustering Library version 1.32 (2006.06.18)
+=item * C Clustering Library version 1.33 (2006.09.25)
 
 =head1 TO DO
 
 =over
 
 =item *  Create the interface to the getclustercentroids routine
+
 =item *  Write Perl routines to read and write Cluster/TreeView-style data files.
 
 =head1 THANKS

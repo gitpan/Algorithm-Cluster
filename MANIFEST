@@ -17,10 +17,6 @@ perl/t/13_somcluster.t
 src/Makefile.PL
 src/cluster.c
 src/cluster.h
-ranlib/src/ranlib.c
-ranlib/src/ranlib.h
-ranlib/src/com.c
-ranlib/linpack/linpack.c
 perl/examples/ex1_kcluster
 perl/examples/ex2_mean_median
 perl/examples/ex3_kcluster

@@ -13,7 +13,7 @@ WriteMakefile(
 	NAME         => 'Algorithm-Cluster',
 	VERSION_FROM => 'perl/Cluster.pm',
         DISTNAME     => 'Algorithm-Cluster',
-        AUTHOR       => 'John Nolan and Michiel de Hoon (mdehoon@c2b2.columbia.edu)',
+        AUTHOR       => 'John Nolan and Michiel de Hoon (mdehoon "AT" gsc.riken.jp)',
         ABSTRACT     => 'Perl interface to the C Clustering Library',
 	DIR          => [ 
 		'src', 

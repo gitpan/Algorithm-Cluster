@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.36';
+$VERSION     = '1.37';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -641,8 +641,8 @@ sub clusterdistance  {
 		return;
 	}
 
-	unless($param{method}    =~ /^[am]$/) {
-		module_warn("Parameter 'method' must be either 'a' or 'm' (got '$param{method}')");
+	unless($param{method}    =~ /^[amsxv]$/) {
+		module_warn("Parameter 'method' must be 'a', 'm', 's', 'x', or 'v' (got '$param{method}')");
 		return;
 	}
 
@@ -830,7 +830,7 @@ See the scripts in the examples subdirectory of the package.
 
 =over 4
 
-=item * C Clustering Library version 1.36 (2007.05.19)
+=item * C Clustering Library version 1.37 (2007.09.01)
 
 =head1 TO DO
 

@@ -105,17 +105,17 @@ my %params = (
 	cluster2  => $data1_c2,
 );
 
-$distance = Algorithm::Cluster::clusterdistance(\%params);
+$distance = Algorithm::Cluster::clusterdistance(%params);
 $want = '  6.650';       test q( sprintf "%7.3f", $distance );
 
 $params{cluster1} = $data1_c1;
 $params{cluster2} = $data1_c3;
-$distance = Algorithm::Cluster::clusterdistance(\%params);
+$distance = Algorithm::Cluster::clusterdistance(%params);
 $want = ' 32.508';       test q( sprintf "%7.3f", $distance );
 
 $params{cluster1} = $data1_c2;
 $params{cluster2} = $data1_c3;
-$distance = Algorithm::Cluster::clusterdistance(\%params);
+$distance = Algorithm::Cluster::clusterdistance(%params);
 $want = ' 15.118';       test q( sprintf "%7.3f", $distance );
 
 #----------
@@ -132,17 +132,17 @@ $want = ' 15.118';       test q( sprintf "%7.3f", $distance );
 	cluster1  => $data2_c1,
 	cluster2  => $data2_c2,
 );
-$distance = Algorithm::Cluster::clusterdistance(\%params);
+$distance = Algorithm::Cluster::clusterdistance(%params);
 $want = '  5.833';       test q( sprintf "%7.3f", $distance );
 
 $params{cluster1} = $data2_c1;
 $params{cluster2} = $data2_c3;
-$distance = Algorithm::Cluster::clusterdistance(\%params);
+$distance = Algorithm::Cluster::clusterdistance(%params);
 $want = '  3.298';       test q( sprintf "%7.3f", $distance );
 
 $params{cluster1} = $data2_c2;
 $params{cluster2} = $data2_c3;
-$distance = Algorithm::Cluster::clusterdistance(\%params);
+$distance = Algorithm::Cluster::clusterdistance(%params);
 $want = '  0.360';       test q( sprintf "%7.3f", $distance );
 
 

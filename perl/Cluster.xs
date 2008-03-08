@@ -544,6 +544,38 @@ row_c2perl_int(pTHX_ int * row, int ncols) {
  *
  */
 static SV*
+matrix_c2perl_dbl(pTHX_ double ** matrix, int nrows, int ncols) {
+
+	int i;
+	AV * matrix_av = newAV();
+	SV * row_ref;
+	for(i=0; i<nrows; ++i) {
+		row_ref = row_c2perl_dbl(aTHX_ matrix[i], ncols);
+		av_push(matrix_av, row_ref);
+	}
+	return ( newRV_noinc( (SV*) matrix_av ) );
+}
+
+/* -------------------------------------------------
+ *
+ */
+static SV*
+matrix_c2perl_int(pTHX_ int ** matrix, int nrows, int ncols) {
+
+	int i;
+	AV * matrix_av = newAV();
+	SV * row_ref;
+	for(i=0; i<nrows; ++i) {
+		row_ref = row_c2perl_int(aTHX_ matrix[i], ncols);
+		av_push(matrix_av, row_ref);
+	}
+	return ( newRV_noinc( (SV*) matrix_av ) );
+}
+
+/* -------------------------------------------------
+ *
+ */
+static SV*
 ragged_matrix_c2perl_dbl(pTHX_ double ** matrix, int nobjects) {
 
 	int i;
@@ -617,6 +649,7 @@ malloc_matrices(pTHX_
 		return 0;
 	}
 
+	if(weight_ref==NULL) return 1; /* Weights not needed */
 	if(SvTYPE(SvRV(weight_ref)) == SVt_PVAV) { 
 		*weight = malloc_row_perl2c_dbl(aTHX_ weight_ref, NULL);
 		if(!(*weight)) {
@@ -855,26 +888,23 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist,method)
         const int n = nelements-1;
 	int i;
         SV* nodes_ref;
-        SV* distances_ref;
 	AV* matrix_av = newAV();
-	AV* row_av = newAV();
 	for(i=0; i<n; i++) {
 		SV* node_ref;
 		AV* node_av = newAV();
 		av_push(node_av, newSViv(nodes[i].left));
 		av_push(node_av, newSViv(nodes[i].right));
+		av_push(node_av, newSVnv(nodes[i].distance));
+		av_push(node_av, newSViv(3));
 		node_ref = newRV( (SV*) node_av );
 		av_push(matrix_av, node_ref);
-		av_push(row_av, newSVnv(nodes[i].distance));
 	}
         nodes_ref = newRV_noinc((SV*)matrix_av);
-        distances_ref = newRV_noinc((SV*)row_av);
 
         /* ------------------------
          * Push the new Perl matrices onto the return stack
          */
         XPUSHs(sv_2mortal( nodes_ref   ));
-        XPUSHs(sv_2mortal( distances_ref ));
 
         free(nodes);
     }
@@ -1162,6 +1192,107 @@ _clusterdistance(nrows,ncols,data_ref,mask_ref,weight_ref,cluster1_len,cluster2_
 
 
 void
+_clustercentroids(nclusters,nrows,ncols,data_ref,mask_ref,clusterid_ref,transpose,method)
+	int      nclusters;
+	int      nrows;
+	int      ncols;
+	SV *     data_ref;
+	SV *     mask_ref;
+	SV *     clusterid_ref;
+	int      transpose;
+	char *   method;
+
+	PREINIT:
+	SV  *    cdata_ref;
+	SV  *    cmask_ref;
+	int     * clusterid;
+
+	double ** matrix;
+	int    ** mask;
+
+	double ** cdata;
+	int    ** cmask;
+	int       cnrows;
+	int       cncols;
+
+	int i;
+	int success;
+
+	PPCODE:
+
+	/* ------------------------
+	 * Don't check the parameters, because we rely on the Perl
+	 * caller to check most paramters.
+	 */
+        if (transpose==0)
+        {    cnrows = nclusters;
+             cncols = ncols;
+        }
+        else if (transpose==1)
+        {    cnrows = nrows;
+             cncols = nclusters;
+        }
+
+	/* ------------------------
+	 * Convert cluster index Perl arrays to C arrays
+	 */
+	clusterid = malloc_row_perl2c_int(aTHX_ clusterid_ref);
+
+	/* ------------------------
+	 * Convert data and mask matrices and the weight array
+	 * from C to Perl.  Also check for errors, and ignore the
+	 * mask or the weight array if there are any errors. 
+	 * Set nweights to the correct number of weights.
+	 */
+	malloc_matrices( aTHX_
+		NULL, NULL, 0, 
+		data_ref,   &matrix,
+		mask_ref,   &mask,  
+		nrows,      ncols
+	);
+
+
+	/* ------------------------
+	 * Create the output variables cdata and cmask.
+	 */
+	cdata = malloc(cnrows * sizeof(double*));
+	cmask = malloc(cnrows * sizeof(int*));
+	for (i = 0; i < cnrows; i++) {
+		cdata[i] = malloc(cncols*sizeof(double));
+		cmask[i] = malloc(cncols*sizeof(int));
+	}
+
+	/* ------------------------
+	 * Run the library function
+	 */
+	success = getclustercentroids(
+               nclusters, nrows, ncols,
+               matrix, mask, clusterid,
+               cdata, cmask, transpose, method[0]);
+
+        /* ------------------------
+         * Convert generated C matrices to Perl matrices
+         */
+        cdata_ref = matrix_c2perl_dbl(aTHX_ cdata, cnrows, cncols);
+        cmask_ref = matrix_c2perl_int(aTHX_ cmask, cnrows, cncols);
+
+        /* ------------------------
+         * Push the new Perl matrices onto the return stack
+         */
+        XPUSHs(sv_2mortal( cdata_ref   ));
+        XPUSHs(sv_2mortal( cmask_ref   ));
+
+	/* ------------------------
+	 * Free what we've malloc'ed 
+	 */
+	free_matrix_int(mask,     nrows);
+	free_matrix_dbl(matrix,   nrows);
+	free_matrix_int(cmask,    cnrows);
+	free_matrix_dbl(cdata,    cnrows);
+
+	/* Finished _clustercentroids() */
+
+void
 _distancematrix(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist)
 	int      nrows;
 	int      ncols;
@@ -1221,7 +1352,6 @@ _distancematrix(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist)
                                  weight,
                                  dist[0],
                                  transpose);
-
 
 	/* ------------------------
 	 * Convert generated C matrices to Perl matrices

@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.37';
+$VERSION     = '1.38';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -45,6 +45,7 @@ $DEBUG       = 1;
 	somcluster 
 	treecluster
 	clusterdistance 
+	clustercentroids 
 	distancematrix 
 );
 
@@ -390,13 +391,8 @@ sub kcluster  {
 	#----------------------------------
 	# Accept parameters from caller
 	#
-	my %param;
-	if(ref($_[0]) eq 'HASH') {
-		%param = (%default, %{$_[0]});
-	} else {
-		%param = (%default, @_);
-	}
-
+	my %param = (%default, @_);
+	my @data = @{$param{data}};
 
 	#----------------------------------
 	# Check the data, matrix and weight parameters
@@ -463,13 +459,7 @@ sub kmedoids  {
 	#----------------------------------
 	# Accept parameters from caller
 	#
-	my %param;
-	if(ref($_[0]) eq 'HASH') {
-		%param = (%default, %{$_[0]});
-	} else {
-		%param = (%default, @_);
-	}
-
+	my %param = (%default, @_);
 
 	#----------------------------------
 	# Check the distance matrix
@@ -516,13 +506,7 @@ sub treecluster  {
 	#----------------------------------
 	# Accept parameters from caller
 	#
-	my %param;
-	if(ref($_[0]) eq 'HASH') {
-		%param = (%default, %{$_[0]});
-	} else {
-		%param = (%default, @_);
-	}
-
+	my %param = (%default, @_);
 
 	#----------------------------------
 	# Check the data, matrix and weight parameters
@@ -595,12 +579,7 @@ sub clusterdistance  {
 	#----------------------------------
 	# Accept parameters from caller
 	#
-	my %param;
-	if(ref($_[0]) eq 'HASH') {
-		%param = (%default, %{$_[0]});
-	} else {
-		%param = (%default, @_);
-	}
+	my %param = (%default, @_);
 
 	#----------------------------------
 	# Check the cluster1 and cluster2 arrays
@@ -663,6 +642,89 @@ sub clusterdistance  {
 
 
 #-------------------------------------------------------------
+# Wrapper for the clustercentroids() function
+#
+sub clustercentroids  {
+
+
+	#----------------------------------
+	# Define default parameters
+	#
+	my %default = (
+
+		data      =>  [[]],
+		mask      =>    '',
+		clusterid =>    [],
+		method    =>   'a',
+		transpose =>     0,
+	);
+
+	#----------------------------------
+	# Accept parameters from caller
+	#
+	my %param = (%default, @_);
+
+
+	#----------------------------------
+	# Check the data, matrix and weight parameters
+	#
+	return unless check_matrix_dimensions(\%param, \%default);
+
+
+	#----------------------------------
+	# Check the other parameters
+	#
+	unless($param{transpose} =~ /^[01]$/) {
+		module_warn("Parameter 'transpose' must be either 0 or 1 (got '$param{transpose}')");
+		return;
+	}
+
+	unless($param{method}    =~ /^[am]$/) {
+		module_warn("Parameter 'method' must be 'a' or 'm' (got '$param{method}')");
+		return;
+	}
+
+
+	#----------------------------------
+	# Check the clusterid arrays
+	#
+	if($param{clusterid} =~ /^\d+$/) {
+		$param{clusterid} = [int($param{clusterid})];
+	} elsif(ref $param{clusterid} ne 'ARRAY') {
+		module_warn("Parameter 'clusterid' does not point to an array. Cannot compute distance.");
+		return;
+	} elsif(@{ $param{clusterid}} <= 0) {
+		module_warn("Parameter 'clusterid' points to an empty array. Cannot compute distance.");
+		return;
+	}
+
+	my $clusterid_len = @{ $param{clusterid}};
+	my $nrows = $param{nrows};
+	my $ncols = $param{ncols};
+	if ($param{transpose}==0 and $clusterid_len != $nrows) {
+		die "Parameter 'clusterid' should have a size of $nrows; found $clusterid_len";
+	}
+	elsif ($param{transpose}==1 and $clusterid_len != $ncols) {
+		die "Parameter 'clusterid' should have a size of $ncols; found $clusterid_len";
+	}
+	my $nclusters = -1;
+	foreach (@{$param{clusterid}}) {
+		if ($_ > $nclusters) {
+			$nclusters = $_;
+		}
+        }
+	$param{nclusters} = $nclusters + 1;
+
+	#----------------------------------
+	# Invoke the library function
+	#
+	return _clustercentroids( @param{
+		qw/nclusters nrows ncols data mask clusterid transpose method/
+	} );
+}
+
+
+#-------------------------------------------------------------
 # Wrapper for the distancematrix() function
 #
 sub distancematrix  {
@@ -682,12 +744,7 @@ sub distancematrix  {
 	#----------------------------------
 	# Accept parameters from caller
 	#
-	my %param;
-	if(ref($_[0]) eq 'HASH') {
-		%param = (%default, %{$_[0]});
-	} else {
-		%param = (%default, @_);
-	}
+	my %param = (%default, @_);
 
 	#----------------------------------
 	# Check the data, matrix and weight parameters
@@ -743,13 +800,7 @@ sub somcluster  {
 	#----------------------------------
 	# Accept parameters from caller
 	#
-	my %param;
-	if(ref($_[0]) eq 'HASH') {
-		%param = (%default, %{$_[0]});
-	} else {
-		%param = (%default, @_);
-	}
-
+	my %param = (%default, @_);
 
 	#----------------------------------
 	# Check the data, matrix and weight parameters
@@ -830,15 +881,11 @@ See the scripts in the examples subdirectory of the package.
 
 =over 4
 
-=item * C Clustering Library version 1.37 (2007.09.01)
+=item * C Clustering Library version 1.38 (2008.02.29)
 
 =head1 TO DO
 
 =over
-
-=item *  Create the interface to the getclustercentroids routine
-
-=item *  Write Perl routines to read and write Cluster/TreeView-style data files.
 
 =head1 THANKS
 

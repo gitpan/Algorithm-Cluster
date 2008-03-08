@@ -3,9 +3,10 @@ README
 INSTALL
 Makefile.PL
 perl/Artistic.txt
-perl/Makefile.PL
 perl/Cluster.xs
 perl/Cluster.pm
+perl/Makefile.PL
+perl/Record.pm
 perl/typemap
 perl/t/00_basic.t
 perl/t/01_mean_median.t

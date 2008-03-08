@@ -10,9 +10,8 @@ if ($^V lt v5.6) {
 copy("perl/MANIFEST.perl","MANIFEST");
 
 WriteMakefile(
-	NAME         => 'Algorithm-Cluster',
+	NAME         => 'Algorithm::Cluster',
 	VERSION_FROM => 'perl/Cluster.pm',
-        DISTNAME     => 'Algorithm-Cluster',
         AUTHOR       => 'John Nolan and Michiel de Hoon (mdehoon "AT" gsc.riken.jp)',
         ABSTRACT     => 'Perl interface to the C Clustering Library',
 	DIR          => [ 

@@ -11,8 +11,8 @@ grid. The C Clustering Library complies with the ANSI C standard.
 Several packages are available as part of the Open Source Clustering Software:
 * Cluster 3.0 is a GUI-based program for Windows, based on Michael Eisen's
   Cluster/TreeView code. Cluster 3.0 was written for Microsoft Windows, and
-  subsequently ported to Mac OS X (Cocoa) and Unix/Linux. A command line version
-  of this program is also available.
+  subsequently ported to Mac OS X (Cocoa) and Unix/Linux. Cluster 3.0 can
+  also be used as a command line program.
 * Pycluster (or Bio.Cluster if used as part of Biopython) is an extension
   module to the scripting language Python.
 * Algorithm::Cluster is an extension module to the scripting language Perl.

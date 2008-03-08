@@ -90,7 +90,6 @@ my $data6 =  [
 my $data7 = $scalar_ref;
 my $data8 = $sub_ref;
 my $data9 = $hash_ref;
-my $data13 = undef();
 my $data10 = [];
 my $data11 = [undef()];
 my $data12 = [[]];

@@ -4,7 +4,7 @@ my ($last_test,$loaded);
 ######################### We start with some black magic to print on failure.
 use lib '../blib/lib','../blib/arch';
 
-BEGIN { $last_test = 28; $| = 1; print "1..$last_test\n"; }
+BEGIN { $last_test = 19; $| = 1; print "1..$last_test\n"; }
 END   { print "not ok 1  Can't load Algorithm::Cluster\n" unless $loaded; }
 
 use Algorithm::Cluster;
@@ -81,7 +81,7 @@ my $mask2 =  [
 #------------------------------------------------------
 # Tests
 # 
-my ($result, $linkdist, $output);
+my ($result, $output);
 my ($i);
 
 #----------
@@ -99,16 +99,15 @@ my %params = (
 	weight     =>  $weight1,
 );
 
-($result, $linkdist) = Algorithm::Cluster::treecluster(%params);
+$result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
 $want = scalar(@$data1) - 1;       test q( scalar @$result );
-$want = scalar(@$data1) - 1;       test q( scalar @$linkdist );
 
 $output = '';
 $i=0;
 foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$linkdist->[$i]);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
 	++$i
 }
 
@@ -122,16 +121,15 @@ $want = '  0:   2   1   2.600
 #--------------[PSLcluster]-------
 $params{method} = 's';
 
-($result, $linkdist) = Algorithm::Cluster::treecluster(%params);
+$result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
 $want = scalar(@$data1) - 1;       test q( scalar @$result );
-$want = scalar(@$data1) - 1;       test q( scalar @$linkdist );
 
 $output = '';
 $i=0;
 foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$linkdist->[$i]);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
 	++$i
 }
 
@@ -144,16 +142,15 @@ $want = '  0:   1   2   2.600
 #--------------[PCLcluster]-------
 $params{method} = 'c';
 
-($result, $linkdist) = Algorithm::Cluster::treecluster(%params);
+$result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
 $want = scalar(@$data1) - 1;       test q( scalar @$result );
-$want = scalar(@$data1) - 1;       test q( scalar @$linkdist );
 
 $output = '';
 $i=0;
 foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$linkdist->[$i]);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
 	++$i
 }
 
@@ -166,16 +163,15 @@ $want = '  0:   1   2   2.600
 #--------------[PMLcluster]-------
 $params{method} = 'm';
 
-($result, $linkdist) = Algorithm::Cluster::treecluster(%params);
+$result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
 $want = scalar(@$data1) - 1;       test q( scalar @$result );
-$want = scalar(@$data1) - 1;       test q( scalar @$linkdist );
 
 $output = '';
 $i=0;
 foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$linkdist->[$i]);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
 	++$i
 }
 
@@ -200,16 +196,15 @@ $want = '  0:   2   1   2.600
 	weight     =>  $weight2,
 );
 
-($result, $linkdist) = Algorithm::Cluster::treecluster(%params);
+$result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
 $want = scalar(@$data2) - 1;       test q( scalar @$result );
-$want = scalar(@$data2) - 1;       test q( scalar @$linkdist );
 
 $output = '';
 $i=0;
 foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$linkdist->[$i]);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
 	++$i
 }
 
@@ -234,16 +229,15 @@ $want = '  0:   5   4   0.003
 #--------------[PSLcluster]-------
 $params{method} = 's';
 
-($result, $linkdist) = Algorithm::Cluster::treecluster(%params);
+$result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
 $want = scalar(@$data2) - 1;       test q( scalar @$result );
-$want = scalar(@$data2) - 1;       test q( scalar @$linkdist );
 
 $output = '';
 $i=0;
 foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$linkdist->[$i]);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
 	++$i
 }
 
@@ -265,16 +259,15 @@ $want = '  0:   4   5   0.003
 #--------------[PCLcluster]-------
 $params{method} = 'c';
 
-($result, $linkdist) = Algorithm::Cluster::treecluster(%params);
+$result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
 $want = scalar(@$data2) - 1;       test q( scalar @$result );
-$want = scalar(@$data2) - 1;       test q( scalar @$linkdist );
 
 $output = '';
 $i=0;
 foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$linkdist->[$i]);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
 	++$i
 }
 
@@ -296,16 +289,15 @@ $want = '  0:   4   5   0.003
 #--------------[PMLcluster]-------
 $params{method} = 'm';
 
-($result, $linkdist) = Algorithm::Cluster::treecluster(%params);
+$result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
 $want = scalar(@$data2) - 1;       test q( scalar @$result );
-$want = scalar(@$data2) - 1;       test q( scalar @$linkdist );
 
 $output = '';
 $i=0;
 foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$linkdist->[$i]);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
 	++$i
 }
 
@@ -346,16 +338,15 @@ my $matrix   =  [
 	data       =>   $matrix,
 );
 
-($result, $linkdist) = Algorithm::Cluster::treecluster(%params);
+$result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
 $want = scalar(@$matrix) - 1;       test q( scalar @$result );
-$want = scalar(@$matrix) - 1;       test q( scalar @$linkdist );
 
 $output = '';
 $i=0;
 foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$linkdist->[$i]);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
 	++$i
 }
 

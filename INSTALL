@@ -57,18 +57,28 @@ Cluster 3.0 can be installed on Unix/Linux by typing
   make
   make install
 This will create the executable cluster and install it in /usr/local/bin. Some
-auxiliary files are installed in /usr/local/cluster.
+auxiliary files are installed in /usr/local/cluster. The executable can be used
+as a GUI program and as a command line program.
+
+For more options, such as installing in a different directory, type
+  ./configure --help
 
 
 Cluster 3.0 as a command line program
 -------------------------------------
 
-To install the command line version of Cluster 3.0, type
+Cluster 3.0 can also be built without GUI support. The executable can then only
+be used as a command line program. This can be useful if you do not want to
+install the Motif libraries, which are required for the GUI.
+To install Cluster 3.0 as a command line program, type
   ./configure --without-x
   make
   make install
 This will create the executable cluster and install it in /usr/local/bin. Some
 auxiliary files (such as the documentation) are installed in /usr/local/cluster.
+
+For more options, such as installing in a different directory, type
+  ./configure --help
 
 
 Python
@@ -108,6 +118,9 @@ to install the module in /some/other/directory/lib/perl5/.
 The subdirectory perl/examples contains some example Perl scripts that use
 Algorithm::Cluster.
 
+To install Algorithm::Cluster for Perl 5.8 and Perl 5.10 on Windows, you can
+use the precompiled package by executing
+  ppm install http://bonsai.ims.u-tokyo.ac.jp/~mdehoon/software/cluster/Algorithm-Cluster.ppd
 
 
 CONTACT

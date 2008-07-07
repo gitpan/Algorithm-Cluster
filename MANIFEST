@@ -8,7 +8,6 @@ perl/Cluster.pm
 perl/Makefile.PL
 perl/Record.pm
 perl/typemap
-perl/t/00_basic.t
 perl/t/01_mean_median.t
 perl/t/02_matrix_parse.t
 perl/t/10_kcluster.t

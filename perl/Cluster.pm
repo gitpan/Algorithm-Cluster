@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.38';
+$VERSION     = '1.39';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -57,21 +57,15 @@ bootstrap Algorithm::Cluster $VERSION;
 #-------------------------------------------------------------
 # Debugging functions
 #
-sub hello  {
+sub version {
 
-	return _hello();
+	return _version();
 }
 
 sub readformat  {
 
 	return unless data_is_valid_matrix($_[0]);
 	return _readformat($_[0]) ;
-}
-
-sub readprint  {
-
-	return unless data_is_valid_matrix($_[0]);
-	return _readprint($_[0]) ;
 }
 
 
@@ -881,7 +875,7 @@ See the scripts in the examples subdirectory of the package.
 
 =over 4
 
-=item * C Clustering Library version 1.38 (2008.02.29)
+=item * C Clustering Library version 1.39 (2008.07.05)
 
 =head1 TO DO
 

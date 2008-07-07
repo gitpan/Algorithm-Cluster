@@ -714,38 +714,13 @@ PROTOTYPES: ENABLE
 
 
 SV *
-_hello()
-   CODE:
-   printf("Hello, world!\n");
-	RETVAL = newSVpv("Hello world!!\n", 0);
-
-	OUTPUT:
-	RETVAL
-
-int
-_readprint(input)
-	SV *      input;
-	PREINIT:
-	double ** matrix;  /* two-dimensional matrix of doubles */
-
+_version()
 	CODE:
-	matrix = parse_data(aTHX_ input);
-
-	if(matrix != NULL) {
-		AV* matrix_av = (AV *) SvRV(input);
-		SV * row_ref = *(av_fetch(matrix_av, (I32) 0, 0));
-		AV * row_av = (AV *) SvRV(row_ref);
-		const int nrows = (int) av_len(matrix_av) + 1;
-        	const int ncols = (int) av_len(row_av) + 1;
-		print_matrix_dbl(aTHX_ matrix,nrows,ncols);
-		free_matrix_dbl(matrix,nrows);
-		RETVAL = 1;
-	} else {
-		RETVAL = 0;
-	}
+	RETVAL = newSVpv( CLUSTERVERSION , 0);
 
 	OUTPUT:
 	RETVAL
+
 
 
 SV *

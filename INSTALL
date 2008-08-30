@@ -87,8 +87,9 @@ Python
 In the top directory (containing setup.py and also this INSTALL file), type
   python setup.py install
 You will need a fairly recent version of Python (2.0 or higher) and the
-Numerical Python package, as well as an ANSI C compiler such as GNU gcc. You may
-need to log in as root the install Pycluster. If you do not have root access, do
+Numerical Python package (NumPy version 1.1.1 or later), as well as an ANSI C
+compiler such as GNU gcc. You may need to log in as root the install Pycluster.
+If you do not have root access, do
   python setup.py install --prefix=/some/other/directory
 and set the environment variable
   PYTHONPATH=/some/other/directory/lib/python2.2/site-packages
@@ -129,5 +130,3 @@ CONTACT
 Michiel de Hoon, University of Tokyo, Human Genome Center
 (currently at the RIKEN Genomic Sciences Center)
 Email: mdehoon 'AT' gsc.riken.jp
-
-

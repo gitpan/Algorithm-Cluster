@@ -118,11 +118,11 @@ Row   2:      4.10    2.20    0.30    5.40    0.50
 Row   3:     12.10    2.00    0.00    5.00    0.00
 ';       test q( Algorithm::Cluster::readformat( $data3 ););
 
-$want = '';
+$want = 'undef';
 			test q( Algorithm::Cluster::readformat( $data4 ););
-$want = '';
+$want = 'undef';
 			test q( Algorithm::Cluster::readformat( $data5 ););
-$want = '';
+$want = 'undef';
 			test q( Algorithm::Cluster::readformat( $data6 ););
 
 $want = 'undef';       test q( Algorithm::Cluster::readformat( $data7 ););

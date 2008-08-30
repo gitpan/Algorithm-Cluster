@@ -37,15 +37,15 @@ my $data5 = [ 2.0, 21, 1, 1, 1, 4.0, 5.0, 'not a number' ];
 
 $want = '13.1000';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data1));
 $want = '12.5000';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data2));
-$want = ' 0.0000';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data3));
-$want = ' 0.0000';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data4));
-$want = ' 0.0000';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data5));
+$want = 'undef';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data3));
+$want = 'undef';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data4));
+$want = 'undef';  test q(sprintf "%7.4f", Algorithm::Cluster::mean($data5));
 
 $want = ' 3.0000';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data1));
 $want = '12.5000';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data2));
-$want = ' 0.0000';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data3));
-$want = ' 0.0000';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data4));
-$want = ' 0.0000';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data5));
+$want = 'undef';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data3));
+$want = 'undef';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data4));
+$want = 'undef';  test q(sprintf "%7.4f", Algorithm::Cluster::median($data5));
 
 
 #------------------------------------------------------

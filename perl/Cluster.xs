@@ -383,23 +383,6 @@ free_ragged_matrix_dbl(double ** matrix, int nrows) {
 	free(matrix);
 }
 
-/* -------------------------------------------------
- * For debugging
- */
-static void
-print_matrix_dbl(pTHX_ double ** matrix, int rows, int columns) {
-
-	int i,j;
-
-	for (i = 0; i < rows; i++) { 
-		printf("Row %3d:  ",i);
-		for (j = 0; j < columns; j++) { 
-			printf(" %7.2f", matrix[i][j]);
-		}
-		printf("\n");
-	}
-}
-
 
 /* -------------------------------------------------
  * For debugging
@@ -1244,8 +1227,8 @@ _clustercentroids(nclusters,nrows,ncols,data_ref,mask_ref,clusterid_ref,transpos
 
 	double ** cdata;
 	int    ** cmask;
-	int       cnrows;
-	int       cncols;
+	int       cnrows = 0; /* Initialize to make the compiler shut up */
+	int       cncols = 0; /* Initialize to make the compiler shut up */
 
 	int i;
 	int ok;

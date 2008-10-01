@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.42';
+$VERSION     = '1.43';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -875,7 +875,7 @@ See the scripts in the examples subdirectory of the package.
 
 =over 4
 
-=item * C Clustering Library version 1.42 (2008.09.12)
+=item * C Clustering Library version 1.43 (2008.10.01)
 
 =head1 TO DO
 
@@ -889,9 +889,9 @@ Cluster and TreeView.
 =head1 AUTHOR
 
 John Nolan jpnolan@sonic.net 2003.  
-Michiel de Hoon mdehoon "AT" gsc.riken.jp 2003-2007.  
-Seiya Imoto imoto "AT" ims.u-tokyo.ac.jp 2003-2007.  
-Satoru Miyano 2003-2007.  
+Michiel de Hoon mdehoon "AT" gsc.riken.jp 2003-2008.  
+Seiya Imoto imoto "AT" ims.u-tokyo.ac.jp 2003-2008.  
+Satoru Miyano 2003-2008.  
 A copyright statement is contained in the source code itself. 
 
 This module is a Perl wrapper for the C clustering library for 

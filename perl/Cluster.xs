@@ -20,6 +20,8 @@
 #include "../src/cluster.h"
 
 
+typedef struct {Node* nodes; int n;} Tree;
+
 /* -------------------------------------------------
  * Using the warnings registry, check to see if warnings
  * are enabled for the Algorithm::Cluster module.
@@ -714,6 +716,321 @@ parse_distance(pTHX_ SV* matrix_ref, int nobjects)
 /******************************************************************************/
 /******************************************************************************/
 
+MODULE = Algorithm::Cluster PACKAGE = Algorithm::Cluster::Node
+PROTOTYPES: ENABLE
+
+SV*
+new (class, left, right, distance)
+	char* class
+	int left
+	int right
+	double distance
+	PREINIT:
+	Node* node;
+	SV* obj;
+	CODE:
+	node = malloc(sizeof(Node));
+	RETVAL = newSViv(0);
+	obj = newSVrv(RETVAL, class);
+	node->left = left;
+	node->right = right;
+	node->distance = distance;
+
+	sv_setiv(obj, PTR2IV(node));
+	SvREADONLY_on(obj);
+	OUTPUT:
+	RETVAL
+
+
+int
+left (obj)
+	SV* obj
+	CODE:
+	RETVAL = (INT2PTR(Node*,SvIV(SvRV(obj))))->left;
+	OUTPUT:
+	RETVAL
+
+int
+right (obj)
+	SV* obj
+	CODE:
+	RETVAL = (INT2PTR(Node*,SvIV(SvRV(obj))))->right;
+	OUTPUT:
+	RETVAL
+
+double
+distance (obj)
+	SV* obj
+	CODE:
+	RETVAL = (INT2PTR(Node*,SvIV(SvRV(obj))))->distance;
+	OUTPUT:
+	RETVAL
+
+void
+set_left (obj, left)
+	SV* obj
+	int left
+	PREINIT:
+	Node* node;
+	CODE:
+	if (!sv_isa(obj, "Algorithm::Cluster::Node")) {
+		croak("set_left should be applied to an Algorithm::Cluster::Node object");
+	}
+	node = INT2PTR(Node*,SvIV(SvRV(obj)));
+	node->left = left;
+
+void
+set_right (obj, right)
+	SV* obj
+	int right
+	PREINIT:
+	Node* node;
+	CODE:
+	if (!sv_isa(obj, "Algorithm::Cluster::Node")) {
+		croak("set_right should be applied to an Algorithm::Cluster::Node object");
+	}
+	node = INT2PTR(Node*,SvIV(SvRV(obj)));
+	node->right = right;
+
+void
+set_distance (obj, distance)
+	SV* obj
+	double distance
+	PREINIT:
+	Node* node;
+	CODE:
+	if (!sv_isa(obj, "Algorithm::Cluster::Node")) {
+		croak("set_distance should be applied to an Algorithm::Cluster::Node object");
+	}
+	node = INT2PTR(Node*,SvIV(SvRV(obj)));
+	node->distance = distance;
+
+void DESTROY (obj)
+	SV* obj
+	PREINIT:
+	I32* temp;
+	Node* node;
+	PPCODE:
+	temp = PL_markstack_ptr++;
+	node = INT2PTR(Node*, SvIV(SvRV(obj)));
+	free(node);
+	if (PL_markstack_ptr != temp) {
+		/* truly void, because dXSARGS not invoked */
+		PL_markstack_ptr = temp;
+		XSRETURN_EMPTY;
+		/* return empty stack */
+	}  /* must have used dXSARGS; list context implied */
+	return;  /* assume stack size is correct */
+
+
+MODULE = Algorithm::Cluster PACKAGE = Algorithm::Cluster::Tree
+PROTOTYPES: ENABLE
+
+SV*
+new (class, nodes)
+	char* class
+	SV* nodes
+
+	PREINIT:
+	Tree* tree;
+	SV* obj;
+        int i;
+	int n;
+	AV* array;
+	int* flag;
+
+	CODE:
+	if(!SvROK(nodes) || SvTYPE(SvRV(nodes)) != SVt_PVAV) { 
+		croak("Algorithm::Cluster::Tree::new expects an array of nodes\n");
+	}
+	array = (AV *) SvRV(nodes);
+	n = (int) av_len(array) + 1;
+	tree = malloc(sizeof(Tree));
+	if (tree) {
+		tree->n = n;
+		tree->nodes = malloc(n*sizeof(Node));
+	}
+	if (! tree || !tree->nodes) {
+		if (tree) free(tree);
+		croak("Algorithm::Cluster::Tree::new memory error\n");
+	}
+
+        for (i = 0; i < n; i++) {
+		Node* node;
+		SV* node_ref = *(av_fetch(array, (I32) i, 0)); 
+		if (!sv_isa(node_ref, "Algorithm::Cluster::Node")) break;
+		node = INT2PTR(Node*,SvIV(SvRV(node_ref)));
+		tree->nodes[i].left = node->left;
+		tree->nodes[i].right = node->right;
+		tree->nodes[i].distance = node->distance;
+	}
+
+	if (i < n) {
+		/* break encountered */
+		free(tree->nodes);
+		free(tree);
+		croak("Algorithm::Cluster::Tree::new expects an array of nodes\n");
+	}
+
+	flag = malloc((2*n+1)*sizeof(int));
+	if(flag) {
+	 	int j;
+		for (i = 0; i < 2*n+1; i++) flag[i] = 0;
+		for (i = 0; i < n; i++) {
+			j = tree->nodes[i].left;
+			if (j < 0) {
+				j = -j-1;
+				if (j>=i) break;
+			}
+			else j+=n;
+			if (flag[j]) break;
+			flag[j] = 1;
+			j = tree->nodes[i].right;
+			if (j < 0) {
+				j = -j-1;
+				if (j>=i) break;
+			}
+			else j+=n;
+			if (flag[j]) break;
+			flag[j] = 1;
+		}
+		free(flag);
+	}
+
+	if (!flag || i < n) {
+		/* break encountered */
+		free(tree->nodes);
+		free(tree);
+		croak("the array of nodes passed to Algorithm::Cluster::Tree::new does not represent a valid tree\n");
+	}
+
+	RETVAL = newSViv(0);
+	obj = newSVrv(RETVAL, class);
+	sv_setiv(obj, PTR2IV(tree));
+	SvREADONLY_on(obj);
+
+	OUTPUT:
+	RETVAL
+
+int
+length (obj)
+	SV* obj
+	CODE:
+	RETVAL = (INT2PTR(Tree*,SvIV(SvRV(obj))))->n;
+	OUTPUT:
+	RETVAL
+
+
+SV *
+get (obj, index)
+	SV* obj
+	int index
+	PREINIT:
+	Tree* tree;
+	Node* node;
+	SV* scalar;
+	CODE:
+	tree = INT2PTR(Tree*,SvIV(SvRV(obj)));
+	if (index < 0 || index >= tree->n) {
+		croak("Index out of bounds in Algorithm::Cluster::Tree::get\n");
+	}
+	RETVAL = newSViv(0);
+	scalar = newSVrv(RETVAL, "Algorithm::Cluster::Node");
+	node = malloc(sizeof(Node));
+	node->left = tree->nodes[index].left;
+	node->right = tree->nodes[index].right;
+	node->distance = tree->nodes[index].distance;
+	sv_setiv(scalar, PTR2IV(node));
+	SvREADONLY_on(scalar);
+	OUTPUT:
+	RETVAL
+
+void
+scale(obj)
+	SV* obj
+	PREINIT:
+	int i;
+	int n;
+	Tree* tree;
+	Node* nodes;
+	double maximum;
+	CODE:
+	if (!sv_isa(obj, "Algorithm::Cluster::Tree")) {
+		croak("scale can only be applied to an Algorithm::Cluster::Tree object");
+	}
+	tree = INT2PTR(Tree*,SvIV(SvRV(obj)));
+	n = tree->n;
+	nodes = tree->nodes;
+	maximum = DBL_MIN;
+	for (i = 0; i < n; i++) {
+		double distance = nodes[i].distance;
+		if (distance > maximum) maximum = distance;
+	}
+	if (maximum!=0.0) {
+		for (i = 0; i < n; i++) nodes[i].distance /= maximum;
+	}
+
+AV *
+cut(obj, nclusters)
+	SV* obj
+	int nclusters
+	PREINIT:
+	int i;
+	int n;
+	Tree* tree;
+	int* clusterid;
+	CODE:
+	if (!sv_isa(obj, "Algorithm::Cluster::Tree")) {
+		croak("cut can only be applied to an Algorithm::Cluster::Tree object");
+	}
+	tree = INT2PTR(Tree*,SvIV(SvRV(obj)));
+	n = tree->n + 1;
+	if (nclusters < 1) {
+		croak("cut: Requested number of clusters should be positive");
+	}
+	if (nclusters > n) {
+		croak("cut: More clusters requested than items available");
+	}
+	clusterid = malloc(n*sizeof(int));
+	if (!clusterid) {
+		croak("cut: Insufficient memory");
+	}
+        /* --------------------------------------------------------------- */
+	cuttree(n, tree->nodes, nclusters, clusterid);
+	/* -- Check for errors flagged by the C routine ------------------ */
+	if (clusterid[0]==-1) {
+		free(clusterid);
+		croak("cut: Error in the cuttree routine");
+	}
+	RETVAL = newAV();
+	for(i=0; i<n; i++) {
+		av_push(RETVAL, newSVnv(clusterid[i]));
+	}
+	free(clusterid);
+	sv_2mortal((SV*)RETVAL);
+	OUTPUT:
+	RETVAL
+
+
+void DESTROY (obj)
+	SV* obj
+	PREINIT:
+	I32* temp;
+	Tree* tree;
+	PPCODE:
+	temp = PL_markstack_ptr++;
+	tree = INT2PTR(Tree*, SvIV(SvRV(obj)));
+	free(tree->nodes);
+	free(tree);
+	if (PL_markstack_ptr != temp) {
+		/* truly void, because dXSARGS not invoked */
+		PL_markstack_ptr = temp;
+		XSRETURN_EMPTY;
+		/* return empty stack */
+	}  /* must have used dXSARGS; list context implied */
+	return;  /* assume stack size is correct */
+
+
 MODULE = Algorithm::Cluster	PACKAGE = Algorithm::Cluster
 PROTOTYPES: ENABLE
 
@@ -803,115 +1120,110 @@ _median(input)
 	RETVAL
 
 
-void
+SV *
 _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist,method)
-    int      nrows;
-    int      ncols;
-    SV *     data_ref;
-    SV *     mask_ref;
-    SV *     weight_ref;
-    int      transpose;
-    char *   dist;
-    char *   method;
+	int      nrows;
+	int      ncols;
+	SV *     data_ref;
+	SV *     mask_ref;
+	SV *     weight_ref;
+	int      transpose;
+	char *   dist;
+	char *   method;
 
-    PREINIT:
-    Node*    nodes;
+	PREINIT:
+	Node*    nodes;
 
-    double  * weight = NULL;
-    double ** matrix = NULL;
-    int    ** mask   = NULL;
-    double ** distancematrix = NULL;
-    const int ndata = transpose ? nrows : ncols;
-    const int nelements = transpose ? ncols : nrows;
+	double  * weight = NULL;
+	double ** matrix = NULL;
+	int    ** mask   = NULL;
+	double ** distancematrix = NULL;
+	const int ndata = transpose ? nrows : ncols;
+	const int nelements = transpose ? ncols : nrows;
 
-    PPCODE:
-    /* ------------------------
-     * Don't check the parameters, because we rely on the Perl
-     * caller to check most paramters.
-     */
+	CODE:
+	/* ------------------------
+ 	* Don't check the parameters, because we rely on the Perl
+ 	* caller to check most paramters.
+ 	*/
 
-    /* ------------------------
-     * Convert data and mask matrices and the weight array
-     * from C to Perl.  Also check for errors, and ignore the
-     * mask or the weight array if there are any errors. 
-     */
-    if (is_distance_matrix(aTHX_ data_ref)) {
-	distancematrix = parse_distance(aTHX_ data_ref, nelements);
-	if (!distancematrix) {
-        	croak("memory allocation failure in _treecluster\n");
+	/* ------------------------
+ 	* Convert data and mask matrices and the weight array
+ 	* from C to Perl.  Also check for errors, and ignore the
+ 	* mask or the weight array if there are any errors. 
+ 	*/
+	if (is_distance_matrix(aTHX_ data_ref)) {
+		distancematrix = parse_distance(aTHX_ data_ref, nelements);
+		if (!distancematrix) {
+        		croak("memory allocation failure in _treecluster\n");
+		}
+	} else {
+		int ok;
+		ok = malloc_matrices(aTHX_ weight_ref, &weight, ndata, 
+					data_ref,   &matrix,
+					mask_ref,   &mask,  
+					nrows,      ncols);
+		if (!ok) {
+			croak("failed to read input data for _treecluster\n");
+		}
+    	}
+
+	/* ------------------------
+ 	* Run the library function
+ 	*/
+	nodes = treecluster(nrows, ncols, matrix, mask, weight, transpose,
+				dist[0], method[0], distancematrix);
+
+	/* ------------------------
+ 	* Check result to make sure we didn't run into memory problems
+ 	*/
+	if(!nodes) {
+		/* treecluster failed due to insufficient memory */
+		if (matrix) {
+			free_matrix_int(mask,     nrows);
+			free_matrix_dbl(matrix,   nrows);
+			free(weight);
+		} else {
+			free_ragged_matrix_dbl(distancematrix, nelements);
+		}
+		croak("memory allocation failure in treecluster\n");
 	}
-    } else {
-	int ok;
-        ok = malloc_matrices(aTHX_ weight_ref, &weight, ndata, 
-				data_ref,   &matrix,
-				mask_ref,   &mask,  
-				nrows,      ncols);
-	if (!ok) {
-        	croak("failed to read input data for _treecluster\n");
+	else {
+
+		/* ------------------------
+ 		 * Convert generated C matrices to Perl matrices
+ 		 */
+		const int n = nelements-1;
+		int i;
+		RETVAL = newSViv(0);
+		SV* obj = newSVrv(RETVAL, "Algorithm::Cluster::Tree");
+		Tree* tree = malloc(sizeof(Tree));
+		tree->n = n;
+		tree->nodes = malloc(n*sizeof(Node));
+		sv_setiv(obj, PTR2IV(tree));
+		SvREADONLY_on(obj);
+		for(i=0; i<n; i++) {
+			tree->nodes[i].left = nodes[i].left;
+			tree->nodes[i].right = nodes[i].right;
+			tree->nodes[i].distance = nodes[i].distance;
+		}
+		free(nodes);
 	}
-    }
 
-    /* ------------------------
-     * Run the library function
-     */
-    nodes = treecluster(nrows, ncols, matrix, mask, weight, transpose,
-                        dist[0], method[0], distancematrix);
-
-    /* ------------------------
-     * Check result to make sure we didn't run into memory problems
-     */
-    if(!nodes) {
-        /* treecluster failed due to insufficient memory */
-        if (matrix) {
-	    free_matrix_int(mask,     nrows);
-	    free_matrix_dbl(matrix,   nrows);
-	    free(weight);
-        } else {
-	    free_ragged_matrix_dbl(distancematrix, nelements);
-        }
-        croak("memory allocation failure in treecluster\n");
-    }
-    else {
-
-        /* ------------------------
-         * Convert generated C matrices to Perl matrices
-         */
-        const int n = nelements-1;
-	int i;
-        SV* nodes_ref;
-	AV* matrix_av = newAV();
-	for(i=0; i<n; i++) {
-		SV* node_ref;
-		AV* node_av = newAV();
-		av_push(node_av, newSViv(nodes[i].left));
-		av_push(node_av, newSViv(nodes[i].right));
-		av_push(node_av, newSVnv(nodes[i].distance));
-		av_push(node_av, newSViv(3));
-		node_ref = newRV( (SV*) node_av );
-		av_push(matrix_av, node_ref);
+	/* ------------------------
+ 	* Free what we've malloc'ed 
+ 	*/
+	if (matrix) {
+		free_matrix_int(mask,     nrows);
+		free_matrix_dbl(matrix,   nrows);
+		free(weight);
+	} else {
+		free_ragged_matrix_dbl(distancematrix, nelements);
 	}
-        nodes_ref = newRV_noinc((SV*)matrix_av);
 
-        /* ------------------------
-         * Push the new Perl matrices onto the return stack
-         */
-        XPUSHs(sv_2mortal( nodes_ref   ));
-
-        free(nodes);
-    }
-
-    /* ------------------------
-     * Free what we've malloc'ed 
-     */
-    if (matrix) {
-	free_matrix_int(mask,     nrows);
-	free_matrix_dbl(matrix,   nrows);
-	free(weight);
-    } else {
-	free_ragged_matrix_dbl(distancematrix, nelements);
-    }
-
-    /* Finished _treecluster() */
+	/* Finished _treecluster() */
+	OUTPUT:
+	RETVAL
 
 
 void
@@ -1527,4 +1839,3 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxgrid,nygrid,ini
 	free(clusterid);
 
 	/* Finished _somcluster() */
-

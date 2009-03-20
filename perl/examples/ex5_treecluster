@@ -55,48 +55,48 @@ my %params = (
 	weight     =>   $weight,
 );
 
-my $result;
-my ($i,$j);
+my $tree;
+my ($i,$j,$n);
 
-my $result = Algorithm::Cluster::treecluster(%params);
+my $tree = Algorithm::Cluster::treecluster(%params);
 
-$i=0;
-foreach(@{$result}) {
-	printf("%3d: %3d %3d %7.3f\n",-1-$i,$_->[0],$_->[1],$_->[2]);
-	++$i;
+$n = $tree->length;
+for ($i = 0; $i < $n; $i++) {
+	my $node = $tree->get($i);
+	printf("%3d: %3d %3d %7.3f\n",-1-$i,$node->left,$node->right,$node->distance);
 }
 
 print "--------------[pairwise single linkage]-------\n";
 $params{method} = 's';
 
-$result = Algorithm::Cluster::treecluster(%params);
+$tree = Algorithm::Cluster::treecluster(%params);
 
-$i=0;
-foreach(@{$result}) {
-	printf("%3d: %3d %3d %7.3f\n",-1-$i,$_->[0],$_->[1],$_->[2]);
-	++$i;
+$n = $tree->length;
+for ($i = 0; $i < $n; $i++) {
+	my $node = $tree->get($i);
+	printf("%3d: %3d %3d %7.3f\n",-1-$i,$node->left,$node->right,$node->distance);
 }
 
 print "--------------[pairwise centroid linkage]-------\n";
 $params{method} = 'c';
 
-$result = Algorithm::Cluster::treecluster(%params);
+$tree= Algorithm::Cluster::treecluster(%params);
 
-$i=0;
-foreach(@{$result}) {
-	printf("%3d: %3d %3d %7.3f\n",-1-$i,$_->[0],$_->[1],$_->[2]);
-	++$i;
+$n = $tree->length;
+for ($i = 0; $i < $n; $i++) {
+	my $node = $tree->get($i);
+	printf("%3d: %3d %3d %7.3f\n",-1-$i,$node->left,$node->right,$node->distance);
 }
 
 print "--------------[pairwise maximum linkage]-------\n";
 $params{method} = 'm';
 
-$result = Algorithm::Cluster::treecluster(%params);
+$tree = Algorithm::Cluster::treecluster(%params);
 
-$i=0;
-foreach(@{$result}) {
-	printf("%3d: %3d %3d %7.3f\n",-1-$i,$_->[0],$_->[1],$_->[2]);
-	++$i;
+$n = $tree->length;
+for ($i = 0; $i < $n; $i++) {
+	my $node = $tree->get($i);
+	printf("%3d: %3d %3d %7.3f\n",-1-$i,$node->left,$node->right,$node->distance);
 }
 
 

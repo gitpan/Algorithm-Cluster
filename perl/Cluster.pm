@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.43';
+$VERSION     = '1.44';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -875,7 +875,7 @@ See the scripts in the examples subdirectory of the package.
 
 =over 4
 
-=item * C Clustering Library version 1.43 (2008.10.01)
+=item * C Clustering Library version 1.44 (2009.03.22)
 
 =head1 TO DO
 

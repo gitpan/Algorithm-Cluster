@@ -8,7 +8,6 @@ BEGIN { $last_test = 7; $| = 1; print "1..$last_test\n"; }
 END   { print "not ok 1  Can't load Algorithm::Cluster\n" unless $loaded; }
 
 use Algorithm::Cluster;
-no  warnings 'Algorithm::Cluster';
 
 $loaded = 1;
 print "ok 1\n";

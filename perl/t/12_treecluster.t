@@ -102,13 +102,12 @@ my %params = (
 $result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-$want = scalar(@$data1) - 1;       test q( scalar @$result );
+$want = scalar(@$data1) - 1;       test q( $result->length );
 
 $output = '';
-$i=0;
-foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
-	++$i
+for($i = 0; $i < $result->length; $i++) {
+	my $node = $result->get($i);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$node->left,$node->right,$node->distance);
 }
 
 
@@ -124,14 +123,14 @@ $params{method} = 's';
 $result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-$want = scalar(@$data1) - 1;       test q( scalar @$result );
+$want = scalar(@$data1) - 1;       test q( $result->length );
 
 $output = '';
-$i=0;
-foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
-	++$i
+for($i = 0; $i < $result->length; $i++) {
+	my $node = $result->get($i);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$node->left,$node->right,$node->distance);
 }
+
 
 $want = '  0:   1   2   2.600
   1:   0  -1   5.800
@@ -145,13 +144,12 @@ $params{method} = 'c';
 $result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-$want = scalar(@$data1) - 1;       test q( scalar @$result );
+$want = scalar(@$data1) - 1;       test q( $result->length );
 
 $output = '';
-$i=0;
-foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
-	++$i
+for($i = 0; $i < $result->length; $i++) {
+	my $node = $result->get($i);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$node->left,$node->right,$node->distance);
 }
 
 $want = '  0:   1   2   2.600
@@ -166,13 +164,12 @@ $params{method} = 'm';
 $result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-$want = scalar(@$data1) - 1;       test q( scalar @$result );
+$want = scalar(@$data1) - 1;       test q( $result->length );
 
 $output = '';
-$i=0;
-foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
-	++$i
+for($i = 0; $i < $result->length; $i++) {
+	my $node = $result->get($i);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$node->left,$node->right,$node->distance);
 }
 
 $want = '  0:   2   1   2.600
@@ -199,13 +196,12 @@ $want = '  0:   2   1   2.600
 $result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-$want = scalar(@$data2) - 1;       test q( scalar @$result );
+$want = scalar(@$data2) - 1;       test q( $result->length );
 
 $output = '';
-$i=0;
-foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
-	++$i
+for($i = 0; $i < $result->length; $i++) {
+	my $node = $result->get($i);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$node->left,$node->right,$node->distance);
 }
 
 $want = '  0:   5   4   0.003
@@ -232,13 +228,12 @@ $params{method} = 's';
 $result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-$want = scalar(@$data2) - 1;       test q( scalar @$result );
+$want = scalar(@$data2) - 1;       test q( $result->length );
 
 $output = '';
-$i=0;
-foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
-	++$i
+for($i = 0; $i < $result->length; $i++) {
+	my $node = $result->get($i);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$node->left,$node->right,$node->distance);
 }
 
 $want = '  0:   4   5   0.003
@@ -262,13 +257,12 @@ $params{method} = 'c';
 $result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-$want = scalar(@$data2) - 1;       test q( scalar @$result );
+$want = scalar(@$data2) - 1;       test q( $result->length );
 
 $output = '';
-$i=0;
-foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
-	++$i
+for($i = 0; $i < $result->length; $i++) {
+	my $node = $result->get($i);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$node->left,$node->right,$node->distance);
 }
 
 $want = '  0:   4   5   0.003
@@ -292,13 +286,12 @@ $params{method} = 'm';
 $result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-$want = scalar(@$data2) - 1;       test q( scalar @$result );
+$want = scalar(@$data2) - 1;       test q( $result->length );
 
 $output = '';
-$i=0;
-foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
-	++$i
+for($i = 0; $i < $result->length; $i++) {
+	my $node = $result->get($i);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$node->left,$node->right,$node->distance);
 }
 
 $want = '  0:   5   4   0.003
@@ -341,13 +334,12 @@ my $matrix   =  [
 $result = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-$want = scalar(@$matrix) - 1;       test q( scalar @$result );
+$want = scalar(@$matrix) - 1;       test q( $result->length );
 
 $output = '';
-$i=0;
-foreach(@{$result}) {
-	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$_->[0],$_->[1],$_->[2]);
-	++$i
+for($i = 0; $i < $result->length; $i++) {
+	my $node = $result->get($i);
+	$output .= sprintf("%3d: %3d %3d %7.3f\n",$i,$node->left,$node->right,$node->distance);
 }
 
 $want = '  0:   2   3   1.000

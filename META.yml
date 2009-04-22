@@ -1,6 +1,6 @@
 --- #YAML:1.0
 name:                Algorithm-Cluster
-version:             1.44
+version:             1.45
 abstract:            Perl interface to the C Clustering Library
 license:             ~
 author:              

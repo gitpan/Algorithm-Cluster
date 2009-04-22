@@ -1758,12 +1758,13 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxgrid,nygrid,ini
 	double  * weight;
 	double ** matrix;
 	int    ** mask;
-	int       nweights;
 
 	int ok;
 
 	int i;
 	AV * matrix_av;
+	const int ndata = transpose ? nrows : ncols;
+	const int nelements = transpose ? ncols : nrows;
 
 	PPCODE:
 	/* ------------------------
@@ -1774,11 +1775,7 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxgrid,nygrid,ini
 	/* ------------------------
 	 * Allocate space for clusterid[][2]. 
 	 */
-	if (transpose==0) {
-		clusterid = malloc(nrows*sizeof(int[2]));
-	} else {
-		clusterid = malloc(ncols*sizeof(int[2]));
-	}
+	clusterid = malloc(nelements*sizeof(int[2]));
 	if (!clusterid) {
 		croak("memory allocation failure in _somcluster\n");
 	}
@@ -1792,8 +1789,7 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxgrid,nygrid,ini
 	 * mask or the weight array if there are any errors. 
 	 * Set nweights to the correct number of weights.
 	 */
-	nweights = (transpose==0) ? ncols : nrows;
-	ok = malloc_matrices( aTHX_ weight_ref, &weight, nweights, 
+	ok = malloc_matrices( aTHX_ weight_ref, &weight, ndata, 
 				data_ref,   &matrix,
 				mask_ref,   &mask,  
 				nrows,      ncols);
@@ -1815,7 +1811,7 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxgrid,nygrid,ini
 	 * Convert generated C matrices to Perl matrices
 	 */
 	matrix_av = newAV();
-	for(i=0; i<nrows; ++i) {
+	for(i=0; i<nelements; ++i) {
 		SV* row_ref;
 		AV* row_av = newAV();
 		av_push(row_av, newSViv(clusterid[i][0]));

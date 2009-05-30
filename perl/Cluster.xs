@@ -387,28 +387,6 @@ free_ragged_matrix_dbl(double ** matrix, int nrows) {
 
 
 /* -------------------------------------------------
- * For debugging
- */
-static SV*
-format_matrix_dbl(pTHX_ double ** matrix, int rows, int columns) {
-
-	int i,j;
-	SV * output = newSVpv("", 0);
-
-	for (i = 0; i < rows; i++) { 
-		sv_catpvf(output, "Row %3d:  ", i);
-		for (j = 0; j < columns; j++) { 
-			sv_catpvf(output, " %7.2f", matrix[i][j]);
-		}
-		sv_catpvf(output, "\n");
-	}
-
-	return(output);
-}
-
-
-
-/* -------------------------------------------------
  * Convert a Perl array into an array of doubles
  * On error, this function returns NULL.
  */
@@ -1046,31 +1024,6 @@ _version()
 
 
 SV *
-_readformat(input)
-	SV *      input;
-	PREINIT:
-	double ** matrix;  /* two-dimensional matrix of doubles */
-
-	CODE:
-	matrix = parse_data(aTHX_ input);
-
-	if(matrix != NULL) {
-                AV* matrix_av = (AV *) SvRV(input);
-                SV * row_ref = *(av_fetch(matrix_av, (I32) 0, 0));
-                AV * row_av = (AV *) SvRV(row_ref);
-                const int nrows = (int) av_len(matrix_av) + 1;
-                const int ncols = (int) av_len(row_av) + 1;
-		RETVAL = format_matrix_dbl(aTHX_ matrix,nrows,ncols);
-		free_matrix_dbl(matrix,nrows);
-	} else {
-		croak("memory allocation failure in _readformat\n");
-	}
-
-	OUTPUT:
-	RETVAL
-
-
-SV *
 _mean(input)
 	SV * input;
 
@@ -1195,9 +1148,11 @@ _treecluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,dist,method)
  		 */
 		const int n = nelements-1;
 		int i;
+		SV* obj;
+		Tree* tree;
 		RETVAL = newSViv(0);
-		SV* obj = newSVrv(RETVAL, "Algorithm::Cluster::Tree");
-		Tree* tree = malloc(sizeof(Tree));
+		obj = newSVrv(RETVAL, "Algorithm::Cluster::Tree");
+		tree = malloc(sizeof(Tree));
 		tree->n = n;
 		tree->nodes = malloc(n*sizeof(Node));
 		sv_setiv(obj, PTR2IV(tree));

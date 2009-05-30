@@ -1,24 +1,13 @@
+use Test::More tests => 28;
 
-my ($last_test,$loaded);
-
-######################### We start with some black magic to print on failure.
 use lib '../blib/lib','../blib/arch';
 
-BEGIN { $last_test = 27; $| = 1; print "1..$last_test\n"; }
-END   { print "not ok 1  Can't load Algorithm::Cluster\n" unless $loaded; }
+use_ok ("Algorithm::Cluster");
+require_ok ("Algorithm::Cluster");
 
-use Algorithm::Cluster;
-no  warnings 'Algorithm::Cluster';
 
-$loaded = 1;
-print "ok 1\n";
+#########################
 
-######################### End of black magic.
-
-sub test;  # Predeclare the test function (defined below)
-
-my $tcounter = 1;
-my $want     = '';
 
 
 #------------------------------------------------------
@@ -104,23 +93,18 @@ my %params = (
         npass     =>       100,
 );
 
-#$i=0;$j=0;
-#foreach(@{$clusters}) {
-#	printf("%2d: %2d\n",$i++,$_);
-#}
-
 #----------
 # Make sure that the length of @clusters matches the length of @data
-$want = scalar @$data1;       test q( scalar @$clusters );
+ok( scalar @$data1 == scalar @$clusters);
 
 #----------
 # Test the cluster coordinates
-$want = '1';       test q( $clusters->[ 0] != $clusters->[ 1] );
-$want = '1';       test q( $clusters->[ 1] == $clusters->[ 2] );
-$want = '1';       test q( $clusters->[ 2] != $clusters->[ 3] );
+ok ( $clusters->[ 0] != $clusters->[ 1] );
+ok ( $clusters->[ 1] == $clusters->[ 2] );
+ok ( $clusters->[ 2] != $clusters->[ 3] );
 
 # Test the within-cluster sum of errors
-$want = '  1.300';       test q( sprintf "%7.3f", $error);
+ok( sprintf ("%7.3f", $error) == '  1.300');
 
 
 #----------
@@ -136,25 +120,20 @@ $i=0;$j=0;
         npass     =>       100,
 );
 
-#$i=0;$j=0;
-#foreach(@{$clusters}) {
-#	printf("%2d: %2d\n",$i++,$_);
-#}
-
 
 #----------
 # Make sure that the length of @clusters matches the length of @data
-$want = scalar @$data2;       test q( scalar @$clusters );
+ok (scalar @$data2 == scalar @$clusters );
 
 #----------
 # Test the cluster coordinates
-$want = '1';       test q( $clusters->[ 0] == $clusters->[ 3] );
-$want = '1';       test q( $clusters->[ 0] != $clusters->[ 6] );
-$want = '1';       test q( $clusters->[ 0] != $clusters->[ 9] );
-$want = '1';       test q( $clusters->[11] == $clusters->[12] );
+ok ($clusters->[ 0] == $clusters->[ 3] );
+ok ( $clusters->[ 0] != $clusters->[ 6] );
+ok ( $clusters->[ 0] != $clusters->[ 9] );
+ok ( $clusters->[11] == $clusters->[12] );
 
 # Test the within-cluster sum of errors
-$want = '  1.012';       test q( sprintf "%7.3f", $error);
+ok ( sprintf ("%7.3f", $error) == '  1.012');
 
 #----------
 # test kcluster with initial cluster assignments
@@ -173,46 +152,25 @@ $initialid = [0,1,2,0,1,2,0,1,2,0,1,2,0];
 
 #----------
 # Test the cluster coordinates
-$want = '2';       test q( $clusters->[ 0] );
-$want = '2';       test q( $clusters->[ 1] );
-$want = '2';       test q( $clusters->[ 2] );
-$want = '2';       test q( $clusters->[ 3] );
-$want = '2';       test q( $clusters->[ 4] );
-$want = '2';       test q( $clusters->[ 5] );
-$want = '0';       test q( $clusters->[ 6] );
-$want = '0';       test q( $clusters->[ 7] );
-$want = '2';       test q( $clusters->[ 8] );
-$want = '1';       test q( $clusters->[ 9] );
-$want = '1';       test q( $clusters->[10] );
-$want = '1';       test q( $clusters->[11] );
-$want = '1';       test q( $clusters->[12] );
+ok ( $clusters->[ 0] == 2 );
+ok ( $clusters->[ 1] == 2 );
+ok ( $clusters->[ 2] == 2 );
+ok ( $clusters->[ 3] == 2 );
+ok ( $clusters->[ 4] == 2 );
+ok ( $clusters->[ 5] == 2 );
+ok ( $clusters->[ 6] == 0 );
+ok ( $clusters->[ 7] == 0 );
+ok ( $clusters->[ 8] == 2 );
+ok ( $clusters->[ 9] == 1 );
+ok ( $clusters->[10] == 1 );
+ok ( $clusters->[11] == 1 );
+ok ( $clusters->[12] == 1 );
 
 # Test the within-cluster sum of errors
-$want = '  3.036';       test q( sprintf "%7.3f", $error);
+ok ( sprintf ("%7.3f", $error) == '  3.036' );
    
-$want = '1';       test q($found);
+ok ($found == 1 );
                  
-#------------------------------------------------------
-# Test function
-# 
-sub test {
-	$tcounter++;
-
-	my $string = shift;
-	my $ret = eval $string;
-	$ret = 'undef' if not defined $ret;
-
-	if("$ret" =~ /^$want$/sm) {
-
-		print "ok $tcounter\n";
-
-	} else {
-		print "not ok $tcounter\n",
-		"   -- '$string' returned '$ret'\n", 
-		"   -- expected =~ /$want/\n"
-	}
-}
-
 __END__
 
 

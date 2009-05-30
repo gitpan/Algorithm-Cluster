@@ -1,23 +1,12 @@
+use Test::More tests => 8;
 
-my ($last_test,$loaded);
-
-######################### We start with some black magic to print on failure.
 use lib '../blib/lib','../blib/arch';
 
-BEGIN { $last_test = 7; $| = 1; print "1..$last_test\n"; }
-END   { print "not ok 1  Can't load Algorithm::Cluster\n" unless $loaded; }
+use_ok ("Algorithm::Cluster");
+require_ok ("Algorithm::Cluster");
 
-use Algorithm::Cluster;
 
-$loaded = 1;
-print "ok 1\n";
-
-######################### End of black magic.
-
-sub test;  # Predeclare the test function (defined below)
-
-my $tcounter = 1;
-my $want     = '';
+#########################
 
 
 #------------------------------------------------------
@@ -105,17 +94,17 @@ my %params = (
 );
 
 $distance = Algorithm::Cluster::clusterdistance(%params);
-$want = '  6.650';       test q( sprintf "%7.3f", $distance );
+is ( sprintf ("%7.3f", $distance ), '  6.650');
 
 $params{cluster1} = $data1_c1;
 $params{cluster2} = $data1_c3;
 $distance = Algorithm::Cluster::clusterdistance(%params);
-$want = ' 32.508';       test q( sprintf "%7.3f", $distance );
+is ( sprintf ("%7.3f", $distance ), ' 32.508');
 
 $params{cluster1} = $data1_c2;
 $params{cluster2} = $data1_c3;
 $distance = Algorithm::Cluster::clusterdistance(%params);
-$want = ' 15.118';       test q( sprintf "%7.3f", $distance );
+is ( sprintf ("%7.3f", $distance ), ' 15.118');
 
 #----------
 # test dataset 2
@@ -132,40 +121,14 @@ $want = ' 15.118';       test q( sprintf "%7.3f", $distance );
 	cluster2  => $data2_c2,
 );
 $distance = Algorithm::Cluster::clusterdistance(%params);
-$want = '  5.833';       test q( sprintf "%7.3f", $distance );
+is ( sprintf ("%7.3f", $distance ), '  5.833');
 
 $params{cluster1} = $data2_c1;
 $params{cluster2} = $data2_c3;
 $distance = Algorithm::Cluster::clusterdistance(%params);
-$want = '  3.298';       test q( sprintf "%7.3f", $distance );
+is ( sprintf ("%7.3f", $distance ), '  3.298');
 
 $params{cluster1} = $data2_c2;
 $params{cluster2} = $data2_c3;
 $distance = Algorithm::Cluster::clusterdistance(%params);
-$want = '  0.360';       test q( sprintf "%7.3f", $distance );
-
-
-
-#------------------------------------------------------
-# Test function
-# 
-sub test {
-	$tcounter++;
-
-	my $string = shift;
-	my $ret = eval $string;
-	$ret = 'undef' if not defined $ret;
-
-	if("$ret" =~ /^$want$/sm) {
-
-		print "ok $tcounter\n";
-
-	} else {
-		print "not ok $tcounter\n",
-		"   -- '$string' returned '$ret'\n", 
-		"   -- expected =~ /$want/\n"
-	}
-}
-
-__END__
-
+is ( sprintf ("%7.3f", $distance ), '  0.360');

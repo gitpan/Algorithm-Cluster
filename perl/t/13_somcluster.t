@@ -1,25 +1,12 @@
+use Test::More tests => 6;
 
-my ($last_test,$loaded);
-
-######################### We start with some black magic to print on failure.
 use lib '../blib/lib','../blib/arch';
 
-BEGIN { $last_test = 5; $| = 1; print "1..$last_test\n"; }
-END   { print "not ok 1  Can't load Algorithm::Cluster\n" unless $loaded; }
+use_ok ("Algorithm::Cluster");
+require_ok ("Algorithm::Cluster");
 
-use Algorithm::Cluster;
-use warnings 'Algorithm::Cluster';
-use Data::Dumper;
 
-$loaded = 1;
-print "ok 1\n";
-
-######################### End of black magic.
-
-sub test;  # Predeclare the test function (defined below)
-
-my $tcounter = 1;
-my $want     = '';
+#########################
 
 
 #------------------------------------------------------
@@ -83,7 +70,6 @@ my $mask2 =  [
 # Tests
 # 
 my ($clusterid);
-my ($i);
 
 my %params;
 
@@ -101,8 +87,8 @@ my %params;
 
 $clusterid = Algorithm::Cluster::somcluster(%params);
 
-$want = scalar(@$data1);           test q( scalar(@$clusterid) );
-$want = '2';                       test q( scalar(@{$clusterid->[0]}) );
+is ( scalar(@$data1), scalar(@$clusterid) );
+is ( scalar(@{$clusterid->[0]}), 2 );
 
 %params = (
 
@@ -118,29 +104,5 @@ $want = '2';                       test q( scalar(@{$clusterid->[0]}) );
 
 $clusterid = Algorithm::Cluster::somcluster(%params);
 
-$want = scalar(@$data2);           test q( scalar(@$clusterid) );
-$want = '2';                       test q( scalar(@{$clusterid->[0]}) );
-
-
-#------------------------------------------------------
-# Test function
-# 
-sub test {
-	$tcounter++;
-
-	my $string = shift;
-	my $ret = eval $string;
-	$ret = 'undef' if not defined $ret;
-
-	if("$ret" =~ /^$want$/sm) {
-
-		print "ok $tcounter\n";
-
-	} else {
-		print "not ok $tcounter\n",
-		"   -- '$string' returned '$ret'\n", 
-		"   -- expected =~ /$want/\n"
-	}
-}
-
-__END__
+is ( scalar(@$data2), scalar(@$clusterid) );
+is ( scalar(@{$clusterid->[0]}), 2 );

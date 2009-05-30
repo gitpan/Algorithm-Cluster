@@ -1,24 +1,12 @@
+use Test::More tests => 30;
 
-my ($last_test,$loaded);
-
-######################### We start with some black magic to print on failure.
 use lib '../blib/lib','../blib/arch';
 
-BEGIN { $last_test = 29; $| = 1; print "1..$last_test\n"; }
-END   { print "not ok 1  Can't load Algorithm::Cluster\n" unless $loaded; }
+use_ok ("Algorithm::Cluster");
+require_ok ("Algorithm::Cluster");
 
-use Algorithm::Cluster;
-no  warnings 'Algorithm::Cluster';
 
-$loaded = 1;
-print "ok 1\n";
-
-######################### End of black magic.
-
-sub test;  # Predeclare the test function (defined below)
-
-my $tcounter = 1;
-my $want     = '';
+#########################
 
 
 #------------------------------------------------------
@@ -63,25 +51,25 @@ my %params1 = (
 
 #----------
 # Make sure that the length of @clusters matches the length of @data
-$want = scalar @$matrix;       test q( scalar @$clusters );
+is (scalar @$matrix, scalar @$clusters );
 
 #----------
 # Test the cluster assignments
-$want = '9';       test q( $clusters->[ 0]);
-$want = '9';       test q( $clusters->[ 1]);
-$want = '2';       test q( $clusters->[ 2]);
-$want = '2';       test q( $clusters->[ 3]);
-$want = '4';       test q( $clusters->[ 4]);
-$want = '5';       test q( $clusters->[ 5]);
-$want = '4';       test q( $clusters->[ 6]);
-$want = '9';       test q( $clusters->[ 7]);
-$want = '4';       test q( $clusters->[ 8]);
-$want = '9';       test q( $clusters->[ 9]);
-$want = '4';       test q( $clusters->[10]);
-$want = '2';       test q( $clusters->[11]);
+is ($clusters->[ 0], 9);
+is ($clusters->[ 1], 9);
+is ($clusters->[ 2], 2);
+is ($clusters->[ 3], 2);
+is ($clusters->[ 4], 4);
+is ($clusters->[ 5], 5);
+is ($clusters->[ 6], 4);
+is ($clusters->[ 7], 9);
+is ($clusters->[ 8], 4);
+is ($clusters->[ 9], 9);
+is ($clusters->[10], 4);
+is ($clusters->[11], 2);
 
 # Test the within-cluster sum of errors
-$want = ' 11.600';       test q( sprintf "%7.3f", $error);
+is (sprintf ("%7.3f", $error), ' 11.600');
 
 
 #------------------------------------------------------
@@ -101,49 +89,22 @@ my %params2 = (
 
 #----------
 # Make sure that the length of @clusters matches the length of @data
-$want = scalar @$matrix;       test q( scalar @$clusters );
+is (scalar @$matrix, scalar @$clusters );
 
 #----------
 # Test the cluster assignments
-$want = '9';       test q( $clusters->[ 0]);
-$want = '9';       test q( $clusters->[ 1]);
-$want = '2';       test q( $clusters->[ 2]);
-$want = '2';       test q( $clusters->[ 3]);
-$want = '4';       test q( $clusters->[ 4]);
-$want = '2';       test q( $clusters->[ 5]);
-$want = '6';       test q( $clusters->[ 6]);
-$want = '9';       test q( $clusters->[ 7]);
-$want = '4';       test q( $clusters->[ 8]);
-$want = '9';       test q( $clusters->[ 9]);
-$want = '4';       test q( $clusters->[10]);
-$want = '2';       test q( $clusters->[11]);
+is ($clusters->[ 0], 9);
+is ($clusters->[ 1], 9);
+is ($clusters->[ 2], 2);
+is ($clusters->[ 3], 2);
+is ($clusters->[ 4], 4);
+is ($clusters->[ 5], 2);
+is ($clusters->[ 6], 6);
+is ($clusters->[ 7], 9);
+is ($clusters->[ 8], 4);
+is ($clusters->[ 9], 9);
+is ($clusters->[10], 4);
+is ($clusters->[11], 2);
 
 # Test the within-cluster sum of errors
-$want = ' 13.000';       test q( sprintf "%7.3f", $error);
-
-
-#------------------------------------------------------
-# Test function
-# 
-sub test {
-	$tcounter++;
-
-	my $string = shift;
-	my $ret = eval $string;
-	$ret = 'undef' if not defined $ret;
-
-	if("$ret" =~ /^$want$/sm) {
-
-		print "ok $tcounter\n";
-
-	} else {
-		print "not ok $tcounter\n",
-		"   -- '$string' returned '$ret'\n", 
-		"   -- expected =~ /$want/\n"
-	}
-}
-
-__END__
-
-
-
+is (sprintf ("%7.3f", $error), " 13.000");

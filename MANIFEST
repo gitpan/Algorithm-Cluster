@@ -8,8 +8,7 @@ perl/Cluster.pm
 perl/Makefile.PL
 perl/Record.pm
 perl/t/01_mean_median.t
-perl/t/02_matrix_parse.t
-perl/t/03_tree.t
+perl/t/02_tree.t
 perl/t/10_kcluster.t
 perl/t/11_clusterdistance.t
 perl/t/12_treecluster.t

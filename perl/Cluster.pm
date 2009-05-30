@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.45';
+$VERSION     = '1.46';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -61,13 +61,6 @@ sub version {
 
 	return _version();
 }
-
-sub readformat  {
-
-	return unless data_is_valid_matrix($_[0]);
-	return _readformat($_[0]) ;
-}
-
 
 
 #-------------------------------------------------------------
@@ -875,7 +868,7 @@ See the scripts in the examples subdirectory of the package.
 
 =over 4
 
-=item * C Clustering Library version 1.45 (2009.04.21)
+=item * C Clustering Library version 1.46 (2009.05.30)
 
 =head1 TO DO
 

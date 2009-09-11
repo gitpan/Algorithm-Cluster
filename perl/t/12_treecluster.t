@@ -16,53 +16,57 @@ require_ok ("Algorithm::Cluster");
 #----------
 # dataset 1
 #
-my $weight1 =  [ 1,1,1,1,1 ];
-my $data1   =  [
-        [ 1.1, 2.2, 3.3, 4.4, 5.5, ], 
-        [ 3.1, 3.2, 1.3, 2.4, 1.5, ], 
-        [ 4.1, 2.2, 0.3, 5.4, 0.5, ], 
-        [ 12.1, 2.0, 0.0, 5.0, 0.0, ], 
+my $weight1 = [ 1,1,1,1,1 ];
+
+my $data1   = [
+    [ 1.1, 2.2, 3.3, 4.4, 5.5, ], 
+    [ 3.1, 3.2, 1.3, 2.4, 1.5, ], 
+    [ 4.1, 2.2, 0.3, 5.4, 0.5, ], 
+    [ 12.1, 2.0, 0.0, 5.0, 0.0, ], 
 ];
-my $mask1 =  [
-        [ 1, 1, 1, 1, 1, ], 
-        [ 1, 1, 1, 1, 1, ], 
-        [ 1, 1, 1, 1, 1, ], 
-        [ 1, 1, 1, 1, 1, ], 
+
+my $mask1 = [
+    [ 1, 1, 1, 1, 1, ], 
+    [ 1, 1, 1, 1, 1, ], 
+    [ 1, 1, 1, 1, 1, ], 
+    [ 1, 1, 1, 1, 1, ], 
 ];
 
 #----------
 # dataset 2
 #
-my $weight2 =  [ 1,1 ];
-my $data2   =  [
-	[ 0.8223, 0.9295 ],
-	[ 1.4365, 1.3223 ],
-	[ 1.1623, 1.5364 ],
-	[ 2.1826, 1.1934 ],
-	[ 1.7763, 1.9352 ],
-	[ 1.7215, 1.9912 ],
-	[ 2.1812, 5.9935 ],
-	[ 5.3290, 5.9452 ],
-	[ 3.1491, 3.3454 ],
-	[ 5.1923, 5.3156 ],
-	[ 4.7735, 5.4012 ],
-	[ 5.1297, 5.5645 ],
-	[ 5.3934, 5.1823 ],
+my $weight2 = [ 1,1 ];
+
+my $data2   = [
+    [ 0.8223, 0.9295 ],
+    [ 1.4365, 1.3223 ],
+    [ 1.1623, 1.5364 ],
+    [ 2.1826, 1.1934 ],
+    [ 1.7763, 1.9352 ],
+    [ 1.7215, 1.9912 ],
+    [ 2.1812, 5.9935 ],
+    [ 5.3290, 5.9452 ],
+    [ 3.1491, 3.3454 ],
+    [ 5.1923, 5.3156 ],
+    [ 4.7735, 5.4012 ],
+    [ 5.1297, 5.5645 ],
+    [ 5.3934, 5.1823 ],
 ];
+
 my $mask2 =  [
-	[ 1, 1 ],
-	[ 1, 1 ],
-	[ 1, 1 ],
-	[ 1, 1 ],
-	[ 1, 1 ],
-	[ 1, 1 ],
-	[ 1, 1 ],
-	[ 1, 1 ],
-	[ 1, 1 ],
-	[ 1, 1 ],
-	[ 1, 1 ],
-	[ 1, 1 ],
-	[ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
+    [ 1, 1 ],
 ];
 
 
@@ -78,13 +82,12 @@ my $node;
 
 #--------------[PALcluster]-------
 my %params = (
-
-	transpose  =>         0,
-	method     =>       'a',
-	dist       =>       'e',
-	data       =>    $data1,
-	mask       =>    $mask1,
-	weight     =>  $weight1,
+    transpose  =>         0,
+    method     =>       'a',
+    dist       =>       'e',
+    data       =>    $data1,
+    mask       =>    $mask1,
+    weight     =>  $weight1,
 );
 
 $tree = Algorithm::Cluster::treecluster(%params);
@@ -95,17 +98,17 @@ is (scalar(@$data1) - 1, $tree->length );
 $node = $tree->get(0);
 is ($node->left, 2);
 is ($node->right, 1);
-is ( sprintf("%7.3f", $node->distance), "  2.600");
+is (sprintf("%7.3f", $node->distance), "  2.600");
 
 $node = $tree->get(1);
 is ($node->left, -1);
 is ($node->right, 0);
-is ( sprintf("%7.3f", $node->distance), "  7.300");
+is (sprintf("%7.3f", $node->distance), "  7.300");
 
 $node = $tree->get(2);
 is ($node->left, 3);
 is ($node->right, -2);
-is ( sprintf("%7.3f", $node->distance), " 21.348");
+is (sprintf("%7.3f", $node->distance), " 21.348");
 
 
 #--------------[PSLcluster]-------
@@ -119,17 +122,17 @@ is (scalar(@$data1) - 1, $tree->length );
 $node = $tree->get(0);
 is ($node->left, 1);
 is ($node->right, 2);
-is ( sprintf("%7.3f", $node->distance), "  2.600");
+is (sprintf("%7.3f", $node->distance), "  2.600");
 
 $node = $tree->get(1);
 is ($node->left, 0);
 is ($node->right, -1);
-is ( sprintf("%7.3f", $node->distance), "  5.800");
+is (sprintf("%7.3f", $node->distance), "  5.800");
 
 $node = $tree->get(2);
 is ($node->left, -2);
 is ($node->right, 3);
-is ( sprintf("%7.3f", $node->distance), " 12.908");
+is (sprintf("%7.3f", $node->distance), " 12.908");
 
 
 #--------------[PCLcluster]-------
@@ -138,22 +141,22 @@ $params{method} = 'c';
 $tree = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-is ( scalar(@$data1) - 1, $tree->length );
+is (scalar(@$data1) - 1, $tree->length );
 
 $node = $tree->get(0);
 is ($node->left, 1);
 is ($node->right, 2);
-is ( sprintf("%7.3f", $node->distance), "  2.600");
+is (sprintf("%7.3f", $node->distance), "  2.600");
 
 $node = $tree->get(1);
 is ($node->left, 0);
 is ($node->right, -1);
-is ( sprintf("%7.3f", $node->distance), "  6.650");
+is (sprintf("%7.3f", $node->distance), "  6.650");
 
 $node = $tree->get(2);
 is ($node->left, -2);
 is ($node->right, 3);
-is ( sprintf("%7.3f", $node->distance), " 19.437");
+is (sprintf("%7.3f", $node->distance), " 19.437");
 
 
 #--------------[PMLcluster]-------
@@ -167,17 +170,17 @@ is (scalar(@$data1) - 1, $tree->length );
 $node = $tree->get(0);
 is ($node->left, 2);
 is ($node->right, 1);
-is ( sprintf("%7.3f", $node->distance), "  2.600");
+is (sprintf("%7.3f", $node->distance), "  2.600");
 
 $node = $tree->get(1);
 is ($node->left, -1);
 is ($node->right, 0);
-is ( sprintf("%7.3f", $node->distance), "  8.800");
+is (sprintf("%7.3f", $node->distance), "  8.800");
 
 $node = $tree->get(2);
 is ($node->left, 3);
 is ($node->right, -2);
-is ( sprintf("%7.3f", $node->distance), " 32.508");
+is (sprintf("%7.3f", $node->distance), " 32.508");
 
 
 
@@ -187,80 +190,79 @@ is ( sprintf("%7.3f", $node->distance), " 32.508");
 
 #--------------[PALcluster]-------
 %params = (
-
-	transpose  =>         0,
-	method     =>       'a',
-	dist       =>       'e',
-	data       =>    $data2,
-	mask       =>    $mask2,
-	weight     =>  $weight2,
+    transpose  =>         0,
+    method     =>       'a',
+    dist       =>       'e',
+    data       =>    $data2,
+    mask       =>    $mask2,
+    weight     =>  $weight2,
 );
 
 $tree = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-is ( scalar(@$data2) - 1, $tree->length);
+is (scalar(@$data2) - 1, $tree->length);
 
 
 $node = $tree->get(0);
 is ($node->left, 5);
 is ($node->right, 4);
-is ( sprintf("%7.3f", $node->distance), "  0.003");
+is (sprintf("%7.3f", $node->distance), "  0.003");
 
 $node = $tree->get(1);
 is ($node->left, 9);
 is ($node->right, 12);
-is ( sprintf("%7.3f", $node->distance), "  0.029");
+is (sprintf("%7.3f", $node->distance), "  0.029");
 
 $node = $tree->get(2);
 is ($node->left, 2);
 is ($node->right, 1);
-is ( sprintf("%7.3f", $node->distance), "  0.061");
+is (sprintf("%7.3f", $node->distance), "  0.061");
 
 $node = $tree->get(3);
 is ($node->left, 11);
 is ($node->right, -2);
-is ( sprintf("%7.3f", $node->distance), "  0.070");
+is (sprintf("%7.3f", $node->distance), "  0.070");
 
 $node = $tree->get(4);
 is ($node->left, -4);
 is ($node->right, 10);
-is ( sprintf("%7.3f", $node->distance), "  0.128");
+is (sprintf("%7.3f", $node->distance), "  0.128");
 
 $node = $tree->get(5);
 is ($node->left, 7);
 is ($node->right, -5);
-is ( sprintf("%7.3f", $node->distance), "  0.224");
+is (sprintf("%7.3f", $node->distance), "  0.224");
 
 $node = $tree->get(6);
 is ($node->left, -3);
 is ($node->right, 0);
-is ( sprintf("%7.3f", $node->distance), "  0.254");
+is (sprintf("%7.3f", $node->distance), "  0.254");
 
 $node = $tree->get(7);
 is ($node->left, -1);
 is ($node->right, 3);
-is ( sprintf("%7.3f", $node->distance), "  0.391");
+is (sprintf("%7.3f", $node->distance), "  0.391");
 
 $node = $tree->get(8);
 is ($node->left, -8);
 is ($node->right, -7);
-is ( sprintf("%7.3f", $node->distance), "  0.532");
+is (sprintf("%7.3f", $node->distance), "  0.532");
 
 $node = $tree->get(9);
 is ($node->left, 8);
 is ($node->right, -9);
-is ( sprintf("%7.3f", $node->distance), "  3.234");
+is (sprintf("%7.3f", $node->distance), "  3.234");
 
 $node = $tree->get(10);
 is ($node->left, -6);
 is ($node->right, 6);
-is ( sprintf("%7.3f", $node->distance), "  4.636");
+is (sprintf("%7.3f", $node->distance), "  4.636");
 
 $node = $tree->get(11);
 is ($node->left, -11);
 is ($node->right, -10);
-is ( sprintf("%7.3f", $node->distance), " 12.741");
+is (sprintf("%7.3f", $node->distance), " 12.741");
 
 
 
@@ -270,68 +272,68 @@ $params{method} = 's';
 $tree = Algorithm::Cluster::treecluster(%params);
 
 # Make sure that @clusters and @centroids are the right length
-is ( scalar(@$data2) - 1, $tree->length );
+is (scalar(@$data2) - 1, $tree->length );
 
 
 $node = $tree->get(0);
 is ($node->left, 4);
 is ($node->right, 5);
-is ( sprintf("%7.3f", $node->distance), "  0.003");
+is (sprintf("%7.3f", $node->distance), "  0.003");
 
 $node = $tree->get(1);
 is ($node->left, 9);
 is ($node->right, 12);
-is ( sprintf("%7.3f", $node->distance), "  0.029");
+is (sprintf("%7.3f", $node->distance), "  0.029");
 
 $node = $tree->get(2);
 is ($node->left, 11);
 is ($node->right, -2);
-is ( sprintf("%7.3f", $node->distance), "  0.033");
+is (sprintf("%7.3f", $node->distance), "  0.033");
 
 $node = $tree->get(3);
 is ($node->left, 1);
 is ($node->right, 2);
-is ( sprintf("%7.3f", $node->distance), "  0.061");
+is (sprintf("%7.3f", $node->distance), "  0.061");
 
 $node = $tree->get(4);
 is ($node->left, 10);
 is ($node->right, -3);
-is ( sprintf("%7.3f", $node->distance), "  0.077");
+is (sprintf("%7.3f", $node->distance), "  0.077");
 
 $node = $tree->get(5);
 is ($node->left, 7);
 is ($node->right, -5);
-is ( sprintf("%7.3f", $node->distance), "  0.092");
+is (sprintf("%7.3f", $node->distance), "  0.092");
 
 $node = $tree->get(6);
 is ($node->left, 0);
 is ($node->right, -4);
-is ( sprintf("%7.3f", $node->distance), "  0.242");
+is (sprintf("%7.3f", $node->distance), "  0.242");
 
 $node = $tree->get(7);
 is ($node->left, -7);
 is ($node->right, -1);
-is ( sprintf("%7.3f", $node->distance), "  0.246");
+is (sprintf("%7.3f", $node->distance), "  0.246");
 
 $node = $tree->get(8);
 is ($node->left, 3);
 is ($node->right, -8);
-is ( sprintf("%7.3f", $node->distance), "  0.287");
+is (sprintf("%7.3f", $node->distance), "  0.287");
 
 $node = $tree->get(9);
 is ($node->left, -9);
 is ($node->right, 8);
-is ( sprintf("%7.3f", $node->distance), "  1.936");
+is (sprintf("%7.3f", $node->distance), "  1.936");
 
 $node = $tree->get(10);
 is ($node->left, -10);
 is ($node->right, -6);
-is ( sprintf("%7.3f", $node->distance), "  3.432");
+is (sprintf("%7.3f", $node->distance), "  3.432");
 
 $node = $tree->get(11);
 is ($node->left, 6);
 is ($node->right, -11);
-is ( sprintf("%7.3f", $node->distance), "  3.535");
+is (sprintf("%7.3f", $node->distance), "  3.535");
 
 
 #--------------[PCLcluster]-------
@@ -347,62 +349,62 @@ is (scalar(@$data2) - 1, $tree->length );
 $node = $tree->get(0);
 is ($node->left, 4);
 is ($node->right, 5);
-is ( sprintf("%7.3f", $node->distance), "  0.003");
+is (sprintf("%7.3f", $node->distance), "  0.003");
 
 $node = $tree->get(1);
 is ($node->left, 12);
 is ($node->right, 9);
-is ( sprintf("%7.3f", $node->distance), "  0.029");
+is (sprintf("%7.3f", $node->distance), "  0.029");
 
 $node = $tree->get(2);
 is ($node->left, 1);
 is ($node->right, 2);
-is ( sprintf("%7.3f", $node->distance), "  0.061");
+is (sprintf("%7.3f", $node->distance), "  0.061");
 
 $node = $tree->get(3);
 is ($node->left, -2);
 is ($node->right, 11);
-is ( sprintf("%7.3f", $node->distance), "  0.063");
+is (sprintf("%7.3f", $node->distance), "  0.063");
 
 $node = $tree->get(4);
 is ($node->left, 10);
 is ($node->right, -4);
-is ( sprintf("%7.3f", $node->distance), "  0.109");
+is (sprintf("%7.3f", $node->distance), "  0.109");
 
 $node = $tree->get(5);
 is ($node->left, -5);
 is ($node->right, 7);
-is ( sprintf("%7.3f", $node->distance), "  0.189");
+is (sprintf("%7.3f", $node->distance), "  0.189");
 
 $node = $tree->get(6);
 is ($node->left, 0);
 is ($node->right, -3);
-is ( sprintf("%7.3f", $node->distance), "  0.239");
+is (sprintf("%7.3f", $node->distance), "  0.239");
 
 $node = $tree->get(7);
 is ($node->left, 3);
 is ($node->right, -1);
-is ( sprintf("%7.3f", $node->distance), "  0.390");
+is (sprintf("%7.3f", $node->distance), "  0.390");
 
 $node = $tree->get(8);
 is ($node->left, -7);
 is ($node->right, -8);
-is ( sprintf("%7.3f", $node->distance), "  0.382");
+is (sprintf("%7.3f", $node->distance), "  0.382");
 
 $node = $tree->get(9);
 is ($node->left, -9);
 is ($node->right, 8);
-is ( sprintf("%7.3f", $node->distance), "  3.063");
+is (sprintf("%7.3f", $node->distance), "  3.063");
 
 $node = $tree->get(10);
 is ($node->left, 6);
 is ($node->right, -6);
-is ( sprintf("%7.3f", $node->distance), "  4.578");
+is (sprintf("%7.3f", $node->distance), "  4.578");
 
 $node = $tree->get(11);
 is ($node->left, -10);
 is ($node->right, -11);
-is ( sprintf("%7.3f", $node->distance), " 11.536");
+is (sprintf("%7.3f", $node->distance), " 11.536");
 
 
 #--------------[PMLcluster]-------
@@ -417,62 +419,62 @@ is ( scalar(@$data2) - 1, $tree->length );
 $node = $tree->get(0);
 is ($node->left, 5);
 is ($node->right, 4);
-is ( sprintf("%7.3f", $node->distance), "  0.003");
+is (sprintf("%7.3f", $node->distance), "  0.003");
 
 $node = $tree->get(1);
 is ($node->left, 9);
 is ($node->right, 12);
-is ( sprintf("%7.3f", $node->distance), "  0.029");
+is (sprintf("%7.3f", $node->distance), "  0.029");
 
 $node = $tree->get(2);
 is ($node->left, 2);
 is ($node->right, 1);
-is ( sprintf("%7.3f", $node->distance), "  0.061");
+is (sprintf("%7.3f", $node->distance), "  0.061");
 
 $node = $tree->get(3);
 is ($node->left, 11);
 is ($node->right, 10);
-is ( sprintf("%7.3f", $node->distance), "  0.077");
+is (sprintf("%7.3f", $node->distance), "  0.077");
 
 $node = $tree->get(4);
 is ($node->left, -2);
 is ($node->right, -4);
-is ( sprintf("%7.3f", $node->distance), "  0.216");
+is (sprintf("%7.3f", $node->distance), "  0.216");
 
 $node = $tree->get(5);
 is ($node->left, -3);
 is ($node->right, 0);
-is ( sprintf("%7.3f", $node->distance), "  0.266");
+is (sprintf("%7.3f", $node->distance), "  0.266");
 
 $node = $tree->get(6);
 is ($node->left, -5);
 is ($node->right, 7);
-is ( sprintf("%7.3f", $node->distance), "  0.302");
+is (sprintf("%7.3f", $node->distance), "  0.302");
 
 $node = $tree->get(7);
 is ($node->left, -1);
 is ($node->right, 3);
-is ( sprintf("%7.3f", $node->distance), "  0.425");
+is (sprintf("%7.3f", $node->distance), "  0.425");
 
 $node = $tree->get(8);
 is ($node->left, -8);
 is ($node->right, -6);
-is ( sprintf("%7.3f", $node->distance), "  0.968");
+is (sprintf("%7.3f", $node->distance), "  0.968");
 
 $node = $tree->get(9);
 is ($node->left, 8);
 is ($node->right, 6);
-is ( sprintf("%7.3f", $node->distance), "  3.975");
+is (sprintf("%7.3f", $node->distance), "  3.975");
 
 $node = $tree->get(10);
 is ($node->left, -10);
 is ($node->right, -7);
-is ( sprintf("%7.3f", $node->distance), "  5.755");
+is (sprintf("%7.3f", $node->distance), "  5.755");
 
 $node = $tree->get(11);
 is ($node->left, -11);
 is ($node->right, -9);
-is ( sprintf("%7.3f", $node->distance), " 22.734");
+is (sprintf("%7.3f", $node->distance), " 22.734");
 
 
 #-------[treecluster on a distance matrix]------------
@@ -493,8 +495,8 @@ my $matrix   =  [
 ];
 
 %params = (
-	method     =>       's',
-	data       =>   $matrix,
+    method     =>       's',
+    data       =>   $matrix,
 );
 
 $tree = Algorithm::Cluster::treecluster(%params);
@@ -505,54 +507,54 @@ is ( scalar(@$matrix) - 1, $tree->length );
 $node = $tree->get(0);
 is ($node->left, 2);
 is ($node->right, 3);
-is ( sprintf("%7.3f", $node->distance), "  1.000");
+is (sprintf("%7.3f", $node->distance), "  1.000");
 
 $node = $tree->get(1);
 is ($node->left, 4);
 is ($node->right, 6);
-is ( sprintf("%7.3f", $node->distance), "  1.100");
+is (sprintf("%7.3f", $node->distance), "  1.100");
 
 $node = $tree->get(2);
 is ($node->left, 5);
 is ($node->right, 11);
-is ( sprintf("%7.3f", $node->distance), "  1.200");
+is (sprintf("%7.3f", $node->distance), "  1.200");
 
 $node = $tree->get(3);
 is ($node->left, 7);
 is ($node->right, 9);
-is ( sprintf("%7.3f", $node->distance), "  1.300");
+is (sprintf("%7.3f", $node->distance), "  1.300");
 
 $node = $tree->get(4);
 is ($node->left, 0);
 is ($node->right, -4);
-is ( sprintf("%7.3f", $node->distance), "  1.400");
+is (sprintf("%7.3f", $node->distance), "  1.400");
 
 $node = $tree->get(5);
 is ($node->left, -5);
 is ($node->right, 10);
-is ( sprintf("%7.3f", $node->distance), "  1.500");
+is (sprintf("%7.3f", $node->distance), "  1.500");
 
 $node = $tree->get(6);
 is ($node->left, -2);
 is ($node->right, -6);
-is ( sprintf("%7.3f", $node->distance), "  1.600");
+is (sprintf("%7.3f", $node->distance), "  1.600");
 
 $node = $tree->get(7);
 is ($node->left, 1);
 is ($node->right, -7);
-is ( sprintf("%7.3f", $node->distance), "  1.700");
+is (sprintf("%7.3f", $node->distance), "  1.700");
 
 $node = $tree->get(8);
 is ($node->left, 8);
 is ($node->right, -8);
-is ( sprintf("%7.3f", $node->distance), "  1.800");
+is (sprintf("%7.3f", $node->distance), "  1.800");
 
 $node = $tree->get(9);
 is ($node->left, -1);
 is ($node->right, -9);
-is ( sprintf("%7.3f", $node->distance), "  1.900");
+is (sprintf("%7.3f", $node->distance), "  1.900");
 
 $node = $tree->get(10);
 is ($node->left, -10);
 is ($node->right, -3);
-is ( sprintf("%7.3f", $node->distance), "  2.200");
+is (sprintf("%7.3f", $node->distance), "  2.200");

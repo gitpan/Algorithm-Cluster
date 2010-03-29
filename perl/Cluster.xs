@@ -107,6 +107,7 @@ extract_double_from_scalar(pTHX_ SV * mysv, double * number) {
 
 /* -------------------------------------------------
  * Convert a Perl 2D matrix into a 2D matrix of C doubles.
+ * If no data are masked, mask can be passed as NULL.
  * NOTE: on errors this function returns a value greater than zero.
  */
 static double**
@@ -196,7 +197,7 @@ parse_data(pTHX_ SV * matrix_ref, int** mask) {
         for (j=0; j < ncols; j++) { 
         
             double num;
-            if (mask[i][j]) {
+            if (!mask || mask[i][j]) {
                 cell = *(av_fetch(row_av, (I32) j, 0)); 
                 if(extract_double_from_scalar(aTHX_ cell,&num) <= 0) {    
                     if(warnings_enabled(aTHX))
@@ -508,7 +509,7 @@ row_c2perl_dbl(pTHX_ double * row, int ncols) {
     for(j=0; j<ncols; ++j) {
         av_push(row_av, newSVnv(row[j]));
     }
-    return ( newRV_noinc( (SV*) row_av ) );
+    return newRV_noinc((SV*) row_av);
 }
 
 /* -------------------------------------------------
@@ -1222,7 +1223,7 @@ _kcluster(nclusters,nrows,ncols,data_ref,mask_ref,weight_ref,transpose,npass,met
     /* ------------------------
      * Malloc space for the return values from the library function
      */
-        if (transpose==0) {
+    if (transpose==0) {
         nobjects = nrows;
         ndata = ncols;
     } else {
@@ -1794,3 +1795,94 @@ _somcluster(nrows,ncols,data_ref,mask_ref,weight_ref,transpose,nxgrid,nygrid,ini
     free(clusterid);
 
     /* Finished _somcluster() */
+
+
+void
+_pca(nrows, ncols, data_ref)
+    int      nrows;
+    int      ncols;
+    SV * data_ref;
+
+    PREINIT:
+    double** u;
+    double** v;
+    double* w;
+    double* m;
+    int i;
+    int j;
+    int nmin;
+    int error;
+    SV * mean_ref;
+    SV * coordinates_ref;
+    SV * pc_ref;
+    SV * eigenvalues_ref;
+
+    PPCODE:
+    if(SvTYPE(SvRV(data_ref)) != SVt_PVAV) { 
+        croak("argument to _pca is not an array reference\n");
+    }
+    nmin = nrows < ncols ? nrows : ncols;
+    /* -- Create the output variables -------------------------------------- */
+    u = parse_data(aTHX_ data_ref, NULL);
+    w = malloc(nmin*sizeof(double));
+    v = malloc(nmin*sizeof(double*));
+    m = malloc(ncols*sizeof(double));
+    if (v) {
+        for (i = 0; i < nmin; i++) {
+            v[i] = malloc(nmin*sizeof(double));
+            if (!v[i]) break;
+        }
+        if (i < nmin) { /* then we encountered the break */
+            while (i-- > 0) free(v[i]);
+            free(v);
+            v = NULL;
+        }
+    }
+    if (!u || !v || !w || !m) {
+        if (u) free(u);
+        if (v) free(v);
+        if (w) free(w);
+        if (m) free(m);
+        croak("memory allocation failure in _pca\n");
+    }
+    /* -- Calculate the mean of each column ------------------------------ */
+    for (j = 0; j < ncols; j++) {
+        m[j] = 0.0;
+        for (i = 0; i < nrows; i++) m[j] += u[i][j];
+        m[j] /= nrows;
+    }
+    /* -- Subtract the mean of each column ------------------------------- */
+    for (i = 0; i < nrows; i++)
+        for (j = 0; j < ncols; j++)
+            u[i][j] -= m[j];
+    error = pca(nrows, ncols, u, v, w);
+    if (error==0) {
+        /* Convert the C variables to Perl variables */
+        mean_ref = row_c2perl_dbl(aTHX_ m, ncols);
+        if (nrows >= ncols) {
+            coordinates_ref = matrix_c2perl_dbl(aTHX_ u, nrows, ncols);
+            pc_ref = matrix_c2perl_dbl(aTHX_ v, nmin, nmin);
+        }
+        else /* nrows < ncols */ {
+            pc_ref = matrix_c2perl_dbl(aTHX_ u, nrows, ncols);
+            coordinates_ref = matrix_c2perl_dbl(aTHX_ v, nmin, nmin);
+        }
+        eigenvalues_ref = row_c2perl_dbl(aTHX_ w, nmin);
+    }
+    for (i = 0; i < nrows; i++) free(u[i]);
+    for (i = 0; i < nmin; i++) free(v[i]);
+    free(u);
+    free(v);
+    free(w);
+    free(m);
+    if (error==-1)
+        croak("Insufficient memory for principal components analysis");
+    if (error > 0)
+        croak("Singular value decomposition failed to converge");
+    /* ------------------------
+     * Push the new Perl matrices onto the return stack
+     */
+    XPUSHs(sv_2mortal(mean_ref));
+    XPUSHs(sv_2mortal(coordinates_ref));
+    XPUSHs(sv_2mortal(pc_ref));
+    XPUSHs(sv_2mortal(eigenvalues_ref));

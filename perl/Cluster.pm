@@ -32,7 +32,7 @@ use DynaLoader;
 
 require Exporter;
 
-$VERSION     = '1.47';
+$VERSION     = '1.48';
 $DEBUG       = 1;
 @ISA         = qw(DynaLoader Exporter);
 
@@ -46,6 +46,7 @@ $DEBUG       = 1;
     clusterdistance 
     clustercentroids 
     distancematrix 
+    pca
 );
 
 use warnings::register;
@@ -724,6 +725,29 @@ sub somcluster {
 }
 
 
+#-------------------------------------------------------------
+# Wrapper for the pca() function
+#
+sub pca {
+    #----------------------------------
+    # Accept parameters from caller
+    #
+    my $data = shift;
+    #----------------------------------
+    # Check the data matrix
+    #
+    return unless data_is_valid_matrix($data);
+    #----------------------------------
+    # Remember the dimensions of the data array
+    #
+    my $nrows   = scalar @{$data};
+    my $ncols   = scalar @{$data->[0]};
+
+    #----------------------------------
+    # Invoke the library function
+    return _pca($nrows, $ncols, $data);
+}
+
 
 1;
 
@@ -755,7 +779,7 @@ See the scripts in the examples subdirectory of the package.
 
 =over 4
 
-=item * C Clustering Library version 1.47 (2009.08.24)
+=item * C Clustering Library version 1.48 (2010.03.28)
 
 =head1 TO DO
 
@@ -769,9 +793,9 @@ Cluster and TreeView.
 =head1 AUTHOR
 
 John Nolan jpnolan@sonic.net 2003.  
-Michiel de Hoon mdehoon "AT" gsc.riken.jp 2003-2009.
-Seiya Imoto imoto "AT" ims.u-tokyo.ac.jp 2003-2009.
-Satoru Miyano 2003-2009.
+Michiel de Hoon mdehoon "AT" gsc.riken.jp 2003-2010.
+Seiya Imoto imoto "AT" ims.u-tokyo.ac.jp 2003-2010.
+Satoru Miyano 2003-2010.
 A copyright statement is contained in the source code itself. 
 
 This module is a Perl wrapper for the C clustering library for 

@@ -15,6 +15,7 @@ perl/t/12_treecluster.t
 perl/t/13_somcluster.t
 perl/t/14_kmedoids.t
 perl/t/15_distancematrix.t
+perl/t/16_pca.t
 src/Makefile.PL
 src/cluster.c
 src/cluster.h

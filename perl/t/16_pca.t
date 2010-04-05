@@ -1,4 +1,4 @@
-use Test::More tests => 78;
+use Test::More tests => 74;
 
 use lib '../blib/lib','../blib/arch';
 
@@ -114,10 +114,9 @@ is (sprintf("%7.4f", $pc->[2][0]), "-0.6300");
 is (sprintf("%7.4f", $pc->[2][1]), " 0.0912");
 is (sprintf("%7.4f", $pc->[2][2]), " 0.0456");
 is (sprintf("%7.4f", $pc->[2][3]), "-0.6746");
-is (sprintf("%7.4f", $pc->[3][0]), "-0.0488");
-is (sprintf("%7.4f", $pc->[3][1]), "-0.6754");
-is (sprintf("%7.4f", $pc->[3][2]), " 0.1224");
-is (sprintf("%7.4f", $pc->[3][3]), " 0.2611");
+# The last eigenvalue is zero. The corresponding eigenvector is strongly
+# affected by roundoff error, so we don't test it. For PCA, it doesn't matter
+# since the coordinates along this eigenvector are zero anyway.
 is (sprintf("%7.4f", $eigenvalues->[0]), " 6.7679");
 is (sprintf("%7.4f", $eigenvalues->[1]), " 3.0109");
 is (sprintf("%7.4f", $eigenvalues->[2]), " 1.8776");

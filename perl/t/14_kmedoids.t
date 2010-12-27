@@ -44,7 +44,7 @@ my ($clusters, $error, $found);
 my %params1 = (
         nclusters =>         4,
         distances =>   $matrix,
-        npass     =>       100,
+        npass     =>     10000,
 );
                                                                                 
 ($clusters, $error, $found) = Algorithm::Cluster::kmedoids(%params1);
